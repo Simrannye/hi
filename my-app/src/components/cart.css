@@ -1,59 +1,10 @@
-/* Resetting Margin and Padding */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-/* Body styles */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    color: #333; /* Improved color for text */
-}
-
-/* Header styles */
-header {
-    background-color: #43811c;
-    color: white;
-    padding: 20px 40px; /* Added horizontal padding for better spacing */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.header-title {
-    font-weight: bold;
-    font-size: 30px;
-    flex-grow: 1;
-    text-align: center;
-}
-
-.back-btn {
-    background-color: #43811c;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 3px;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-}
-
-.back-btn:hover {
-    background-color: #183517;
-}
-
-/* Main Content */
-main {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px 40px;
-    gap: 30px; /* Added space between cart and summary */
-}
-
-/* Cart Container */
 .cart-container {
-    flex: 1;
-    margin-top: 30px;
+    margin-top: 87px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding: 4px 6px;
 }
 
 .cart-item {
@@ -66,14 +17,14 @@ main {
 }
 
 .cart-item img {
-    width: 100px;
-    height: 100px;
+    width: 113px;
+    height: auto;
     object-fit: cover;
     border-radius: 5px 0 0 5px;
 }
 
 .item-details {
-    padding: 15px; /* Increased padding for better spacing */
+    padding: 9px 31px;
 }
 
 .item-details h2 {

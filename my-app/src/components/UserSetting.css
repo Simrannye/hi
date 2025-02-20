@@ -1,21 +1,5 @@
 /* General Styles */
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    background-color: #f1f5f8;
-    color: #333;
-}
 
-
-
-h1 {
-    margin-top: 0;
-    text-align: center;
-    font-size: 28px;
-    font-weight: 600;
-}
 
 /* Back Button */
 .back-btn {
@@ -37,6 +21,15 @@ h1 {
 }
 
 
+h1{
+    text-align: center;
+    font-size: 3rem;
+    color: #333;
+    padding: 13px;
+    margin: 3rem 0;
+    background: rgba(250, 249, 249, 0.05);
+    margin: 14px;
+}
 
 /* Settings Section */
 .settings {
@@ -47,18 +40,13 @@ h1 {
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease;
+    margin-top: 95px;
 }
 
 .settings:hover {
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
 
-h1, h2 {
-    margin-top: 0;
-    font-size: 26px;
-    font-weight: 600;
-    color: #00796b;
-}
 
 /* Form Styles */
 form {
@@ -171,3 +159,55 @@ textarea:focus {
 #passwordForm button {
     margin-top: 20px;
 }
+
+/* Profile Picture Section */
+.profile-image {
+    width: 120px; 
+    height: 120px;
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 3px solid #ff7f50; 
+    display: block;
+    margin: 10px auto; 
+  }
+  
+  /* Custom File Upload Button */
+  .custom-file-upload {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #ff7f50;
+    color: white;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .custom-file-upload:hover {
+    background-color: #ff5722;
+  }
+  
+  #profilePicture {
+    display: none;
+  }
+
+  .submit{
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #ff7f50;
+    color: white;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .submit:hover {
+    background-color: #ff5722;
+  }
+
+  

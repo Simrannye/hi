@@ -5,7 +5,7 @@ import Header from "./Header";
 import img1 from "./img-1.jpg";
 import img2 from "./img-2.jpg";
 import img3 from "./img-3.jpg";
-import "./cart.jpg";
+import cart from "./cart.jpg";
 
 const Cart = () => {
   // Sample cart data - in a real app, this would likely come from state management
@@ -77,7 +77,7 @@ const Cart = () => {
           <h2>Cart Summary</h2>
           <p>Total Items: {totalItems}</p>
           <p>Total Price: NPR {totalPrice}</p>
-          <img src="cart.jpg" alt="cart" />
+          <img src={cart} alt="cart" />
           <button 
             className="checkout-btn"
             onClick={handleCheckout}

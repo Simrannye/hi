@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './log.css';
+import Signup from "./components/Signup";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -64,16 +65,18 @@ const Login = () => {
           </form>
 
           <p className="signup-link">
-            Don't have an account? <Link to="/signup">Sign Up</Link>
+            Don't have an account? <Link to="/Signup">Sign Up</Link>
           </p>
         </div>
       </main>
 
-      <footer>
+      {/* <footer>
         <p>&copy; 2025 GrabnGo All rights reserved.</p>
-      </footer>
+      </footer> */}
     </div>
   );
 };
+
+
 
 export default Login;

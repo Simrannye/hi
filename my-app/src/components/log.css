@@ -3,7 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+
 }
 
 /* Body Styling */
@@ -15,7 +15,7 @@ body {
 
 /* Main Content */
 main {
-    display: flex;
+    display: wrap;
     justify-content: center;
     align-items: center;
     min-height: 80vh;
@@ -31,6 +31,11 @@ main {
     text-align: center;
     width: 100%;
     max-width: 400px;
+    margin-top: 75px;
+    /* justify-content: center; */
+    display: flow;
+    margin-left: 400px;
+
 }
 
 .login-container h2 {
@@ -48,6 +53,8 @@ label {
     text-align: left;
     font-weight: bold;
     margin-bottom: 5px;
+    font-size: 17px;
+
 }
 
 input {

@@ -1,54 +1,5 @@
-/* Reset & General Styling */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
 
-/* Body Styling */
-body {
-    background-color: #f9f9f9;
-    color: #333;
-}
 
-/* Header */
-header {
-    background-color: #43811c;
-    color: white;
-    padding: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.header-title {
-    font-size: 26px;
-    text-align: center;
-    flex-grow: 1;
-}
-
-.back-btn {
-    color: white;
-    text-decoration: none;
-    font-size: 16px;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-}
-
-.back-btn:hover {
-    background-color: #183517;
-}
-
-/* Main Content */
-main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 80vh;
-    padding: 20px;
-}
 
 /* Signup Form Container */
 .signup-container {
@@ -59,6 +10,8 @@ main {
     text-align: center;
     width: 100%;
     max-width: 400px;
+    margin-left: 400px;
+    margin-top: 43px;
 }
 
 .signup-container h2 {

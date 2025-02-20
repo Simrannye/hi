@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import "./Sign.css"; // Make sure the CSS file exists
+import "./Signup.css"; // Make sure the CSS file exists
 
 const Signup = () => {
   // State management for form inputs
@@ -33,11 +33,7 @@ const Signup = () => {
 
   return (
     <div className="signup-container">
-      {/* Header */}
-      <header>
-        <Link to="/" className="back-btn">← Back</Link>
-        <h1 className="header-title">Create an Account</h1>
-      </header>
+ 
 
       {/* Signup Form */}
       <main>
@@ -63,10 +59,7 @@ const Signup = () => {
         <p className="login-link">Already have an account? <Link to="/login">Login here</Link></p>
       </main>
 
-      {/* Footer */}
-      <footer>
-        <p>&copy; 2025 GrabnGo. All rights reserved.</p>
-      </footer>
+
     </div>
   );
 };

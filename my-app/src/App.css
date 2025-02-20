@@ -12,8 +12,8 @@
   transition: .2s linear;
 }
 .logo {
-  max-height: 80px;
-  margin-top: 5px;
+  max-height: 64px;
+  margin-top: 6px;
   padding: 0%;
 }
 html{
@@ -31,13 +31,13 @@ html{
 
 .search-form input[type="text"] {
   padding: 5px 10px;
-  background: #262b2486;
+  background: #868b8408;
   font-size: 14px;
   color: #f9f8f8;
   border: 1px solid #ccc;
-  border-radius: 20px;
-  outline: none; 
-  height: 30px; 
+  border-radius: 19px;
+  outline: auto;
+  height: 26px; 
 }
 
 .search-form button {
@@ -329,11 +329,6 @@ section{
   background-color: #f9f9f9;
 }
 
-.heading {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 30px;
-}
 
 .heading span {
   color: #2d8b6d;
@@ -537,48 +532,50 @@ section{
   text-decoration: line-through;
 }
 
-.contact .row{
+.contact-container {
   display: flex;
-  flex-wrap: wrap-reverse;
-  gap:1.5rem;
   align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.contact .row form{
-  flex:1 1 40rem;
-  padding:2rem 2.5rem;
-  box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.1);
-  border:.1rem solid rgba(0,0,0,.1);
-  background: #fff;
-  border-radius: .5rem;
+/* Image Styling */
+.contact-image img {
+  width: 400px; /* Adjust based on your preference */
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.contact .row .image{
-  flex:1 1 40rem;
+/* Form Styling */
+.contact-form {
+  flex: 1;
+  max-width: 500px;
 }
-
-.contact .row .image img{
+.contact-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.box {
+  padding: 10px;
   width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
-
-.contact .row form .box{
-  padding:1rem;
-  font-size: 1.7rem;
-  color:#333;
-  text-transform: none;
-  border:.1rem solid rgba(0,0,0,.1);
-  border-radius: .5rem;
-  margin:.7rem 0;
-  width: 100%;
+.btn {
+  background: #ff7f50;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
 }
-
-.contact .row form .box:focus{
-  border-color: var(--pink);
-}
-
-.contact .row form textarea{
-  height: 15rem;
-  resize: none;
+.btn:hover {
+  background: #ff5722;
 }
 
 .footer .box-container{
