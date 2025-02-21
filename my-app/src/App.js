@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import React, {useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, data } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import "./App.css";
 import logo from "./grab.png";
@@ -161,6 +161,18 @@ const Profile = () => {
 
 // Main App Component
 function App() {
+
+  const [backendData, setBackendData] = useState([{}])
+  useEffect(() => {
+  fetch("/api").then(
+    response => response.json()
+  ).then(
+    data => {
+      setBackendData(data)
+    }
+  )
+}, [])
+
   return (
     <Router>
       <div className="App">
