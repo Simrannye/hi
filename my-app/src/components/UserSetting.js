@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./UserSetting.css"; 
-import profilePlaceholder from "../profile.jpg"; 
+import profilePlaceholder from "./profile.jpg"; 
 import Header from "./Header";
 const UserSettings = () => {
   const [showPasswordForm, setShowPasswordForm] = useState(false);

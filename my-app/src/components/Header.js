@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import UserSetting from "./UserSetting";
 import logo from "../grab.png";
+import prologo from "./profile.jpg";
 import "./Header.css";
 import Login from "./Login";
 
@@ -49,7 +50,7 @@ const Header = () => {
           <h4>Username</h4>
           <div className="profile-wrapper">
             <div className="profile-container">
-              <img src="profile.jpg" alt="Profile Picture" className="profile-picture" />
+            <img src={prologo} className="prologo" alt="pro Logo" />
             </div>
           </div>
           <ul>
