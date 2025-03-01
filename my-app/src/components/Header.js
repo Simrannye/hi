@@ -5,16 +5,37 @@ import UserSetting from "./UserSetting";
 import logo from "../grab.png";
 import prologo from "./profile.jpg";
 import "./Header.css";
-import Login from "./Login";
+import { useNavigate } from 'react-router-dom';
+
 
 
 const Header = () => {
+    const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
   
     const toggleSidebar = () => {
       setSidebarOpen(!isSidebarOpen);
     };
   
+    const handleLogout = async () => {
+      try {
+          const response = await fetch('http://localhost:5000/api/auth/logout', {
+              method: 'POST',
+              credentials: 'include'
+          });
+
+          if (response.ok) {
+              setUser(null);
+              navigate('/userauth'); // Redirect to login page after logout
+          } else {
+              console.error('Logout failed');
+          }
+      } catch (error) {
+          console.error('Logout error:', error);
+      }
+  };
     return (
       <>
         <header className="App-header">
@@ -55,7 +76,7 @@ const Header = () => {
           </div>
           <ul>
             <li><Link to="/UserSetting">Settings</Link></li>
-            <li><Link to="/Login">Log Out</Link></li>
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
             <li><a href="#" onClick={toggleSidebar}>Back</a></li>
           </ul>
         </div>

@@ -6,11 +6,11 @@ import Contact from "./components/Contact";
 import Offers from "./components/Offers";
 import UserSetting from "./components/UserSetting";
 import Header from "./components/Header";
-import Login from "./components/Login";
-import Signup from "./components/Signup";
 import Profile from "./components/Profile";
 import About from "./components/About";
 import Footer from "./components/Footer";
+import UserAuth from './components/UserAuth';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 
@@ -36,35 +36,40 @@ const Home = () => {
 // Main App Component
 function App() {
 
-  const [backendData, setBackendData] = useState([{}])
-  useEffect(() => {
-  fetch("/api").then(
-    response => response.json()
-  ).then(
-    data => {
-      setBackendData(data)
-    }
-  )
-}, [])
-
   return (
+    
     <Router>
       <div className="App">
-        <Header />
+      <Header/>
         <main>
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/offers" element={<Offers />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/profile" element={<Profile />} />\
-            <Route path="/UserSetting" element={<UserSetting />} />
-            <Route path="/Login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/" element={<ProtectedRoute>
+            <Home />
+          </ProtectedRoute>} />
+            <Route path="/about" element={<ProtectedRoute>
+            <About />
+          </ProtectedRoute>} />
+            <Route path="/offers" element={<ProtectedRoute>
+            <Offers />
+          </ProtectedRoute>} />
+            <Route path="/contact" element={<ProtectedRoute>
+            <Contact/>
+          </ProtectedRoute>} />
+            <Route path="/cart" element={<ProtectedRoute>
+            <Cart/>
+          </ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>} />\
+            <Route path="/UserSetting" element={<ProtectedRoute>
+            <UserSetting />
+          </ProtectedRoute>} />
+            <Route path="/userauth" element={<UserAuth />} />
+            
+
           </Routes>
         </main>
-        <Footer />
+       <Footer/>
       </div>
     </Router>
   );
