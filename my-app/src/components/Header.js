@@ -1,11 +1,11 @@
 import React, {useState} from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import UserSetting from "./UserSetting";
 import logo from "../grab.png";
 import prologo from "./profile.jpg";
 import "./Header.css";
 import { useNavigate } from 'react-router-dom';
+
 
 
 
@@ -50,7 +50,7 @@ const Header = () => {
   
           <form action="/search" className="search-form">
             <input type="text" placeholder="Search.." name="search" />
-            <button type="submit">&#10162;</button>
+            <button type="searchsubmit">&#10162;</button>
           </form>
   
           <div className="icons">

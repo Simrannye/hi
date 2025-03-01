@@ -3,10 +3,7 @@ import { Link } from 'react-router-dom';
 import "../App.css";
 import Header from "./Header";
 import contactImg from "../fruit.jpg";
-import img1 from "./img-1.jpg";
-import img2 from "./img-2.jpg";
-import img3 from "./img-3.jpg";
-import cart from "./cart.jpg";
+
 
 const Contact = () => {
   return (
@@ -28,7 +25,7 @@ const Contact = () => {
                <input type="email" placeholder="Email" className="box" />
                <input type="text" placeholder="Phone Number" className="box" />
                <textarea className="box" placeholder="Message" cols="30" rows="10"></textarea>
-               <input type="submit" value="Send Message" className="btn" />
+               <input type="submit" value="Send Message" className="messagebtn" />
              </form>
            </div>
          </div>

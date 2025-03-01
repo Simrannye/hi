@@ -22,52 +22,6 @@ html{
   scroll-padding-top: 6rem;
   overflow-x: hidden;
 }
-.search-form {
-  margin-left: 10px; 
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-form input[type="text"] {
-  padding: 5px 10px;
-  background: #868b8408;
-  font-size: 14px;
-  color: #f9f8f8;
-  border: 1px solid #ccc;
-  border-radius: 19px;
-  outline: auto;
-  height: 26px; 
-}
-
-.search-form button {
-  position: absolute;
-  right: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px; 
-  color: #333; 
-}
-
-.search-form button:focus {
-  outline: none;
-}
-
-.search-form button span {
-  visibility: hidden;
-  position: absolute;
-}
-
-.search-form input[type="text"]:hover,
-.search-form button:hover {
-  border-color: #888;
-}
-
-.search-form input[type="text"]:focus {
-  box-shadow: 0 0 5px rgb(66, 183, 50);
-  border: 1px solid rgb(81, 238, 123);
-}
 
 
 section{
@@ -112,7 +66,7 @@ section{
 
 .notification {
   position: absolute;
-  top: 29px;
+  top: 39px;
   right: 100px;
   background-color: red;
   color: white;
@@ -262,62 +216,155 @@ section{
   color: #0b0101;
 }
 
-
-.home{
+/* Home Section */
+.home {
   display: flex;
   align-items: center;
+  justify-content: center;
   min-height: 100vh;
-  background:url(fruit.webp) no-repeat;
-  background-size: cover;
-  background-position: center;
+  position: relative;
+  text-align: center;
+  padding: 20px;
+  background: url(fruit.webp) no-repeat center/cover;
 }
 
-.home .content{
-  max-width: 50rem;
-  margin-left: inherit;
+.home::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.3); /* Soft overlay */
 }
 
-.home .content h3{
-  margin-top: 10rem;
-  font-size: 6rem;
-  color:#1b4618;
+.home .content {
+  position: absolute;
+  max-width: 565px;
+  padding: 98px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  margin-top: 66px;
+  left: 300px;
+  border: 2px solid rgba(143, 188, 143, 0.4); /* Soft green border */
 }
 
-.home .content span{
-  font-size: 3.5rem;
-  color:var(--pink);
-  padding:1rem 0;
-  line-height: 1.9;
+/* Headings */
+.home .content h3 {
+  font-size: 4rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.home .content p{
-  font-size: 1.6rem;
-  color: white;
-  padding: 2rem 22px;
+/* Highlighted Text */
+.home .content span {
+  font-size: 2.5rem;
+  color: rgba(143, 188, 143, 0.9); /* Changed to sage green */
+  display: block;
+  margin-top: 10px;
+}
+
+/* Paragraph */
+.home .content p {
+  font-size: 1.4rem;
   line-height: 1.7;
+  margin-top: 15px;
+  color: rgba(255, 255, 255, 0.9);
 }
+
+/* Button Styling */
+.probtn {
+  display: inline-block;
+  padding: 12px 25px;
+  font-size: 1.6rem;
+  font-weight: 600; /* Changed from bold to 600 */
+  text-transform: uppercase;
+  text-decoration: none;
+  color: white;
+  background: #8FBC8F; /* Changed to sage green */
+  border-radius: 8px; /* Changed from 5px to 8px */
+  transition: background 0.3s ease, transform 0.2s ease;
+  letter-spacing: 0.5px; /* Added letter spacing */
+}
+
+/* Simple Hover Effect */
+.probtn:hover {
+  background: #6B8E23; /* Changed to olive green */
+  transform: translateY(-3px);
+}
+
+/* Collage Section with Smooth Animation */
+.collage {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 50px 5%;
+  background: #f5f5dc; /* Changed to light beige */
+}
+
+/* Collage Images */
+.collage img {
+  width: 30%;
+  border-radius: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  border: 3px solid rgba(143, 188, 143, 0.3); /* Added subtle green border */
+}
+
+/* Hover Effect for Interactivity */
+.collage img:hover {
+  transform: scale(1.08);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  border-color: rgba(143, 188, 143, 0.7); /* Border darkens on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .home .content h3 {
+      font-size: 3rem;
+  }
+
+  .home .content span {
+      font-size: 2rem;
+  }
+
+  .home .content p {
+      font-size: 1.2rem;
+  }
+
+  .collage {
+      flex-direction: column;
+      align-items: center;
+  }
+
+  .collage img {
+      width: 90%;
+  }
+}
+
+
 
 .about .row{
   display: flex;
   align-items: center;
-  gap:2rem;
+  gap: 2rem;
   flex-wrap: wrap;
-  padding:2rem 0;
+  padding: 2rem 0;
   padding-bottom: 3rem;
 }
 
 .about .row .content{
-  flex:1 1 40rem;
+  flex: 1 1 40rem;
 }
 
 .about .row .content h3{
   font-size: 3rem;
-  color:#333;
+  color: #2E4F1E; /* Changed from #333 to dark forest green */
 }
 
 .about .row .content p{
   font-size: 1.6rem;
-  color: green;
+  color: #6B8E23; /* Changed from generic green to olive green */
   padding: 1.5rem;
   padding-top: 1rem;
   line-height: 1.5;
@@ -326,12 +373,11 @@ section{
 .about {
   text-align: center;
   padding: 50px 20px;
-  background-color: #f9f9f9;
+  background-color: #f5f5dc; /* Changed from #f9f9f9 to light beige */
 }
 
-
 .heading span {
-  color: #2d8b6d;
+  color: #8FBC8F; /* Changed from #2d8b6d to sage green */
 }
 
 .about-container {
@@ -350,9 +396,8 @@ section{
   max-width: 400px;
   border-radius: 10px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(143, 188, 143, 0.3); /* Added subtle green border */
 }
-
-
 
 /* Features Section - Icons in Vertical Layout */
 .features {
@@ -369,21 +414,34 @@ section{
   margin-bottom: 20px;
   width: 100%;
   max-width: 400px;
+  background-color: rgba(255, 255, 255, 0.8); /* Added white background */
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #8FBC8F; /* Added green accent border */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .feature img {
   width: 50px;
   height: 50px;
+  padding: 8px;
+  background-color: rgba(143, 188, 143, 0.1); /* Added light green background */
+  border-radius: 50%;
 }
 
 .feature .info h3 {
   font-size: 1.2rem;
-  color: #222;
+  color: #2E4F1E; /* Changed from #222 to dark forest green */
 }
 
 .feature .info span {
   font-size: 0.9rem;
-  color: #666;
+  color: #6B8E23; /* Changed from #666 to olive green */
 }
 
 /* Responsive Design */

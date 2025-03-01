@@ -1,83 +1,79 @@
 .content {
     background-color: #fff;
     border-radius: 40px;
-    position: absolute; /* Centering using absolute positioning */
+    position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Moves it back by half of its own width and height */
+    transform: translate(-50%, -50%);
     overflow: hidden;
     width: 50vw;
     min-height: 480px;
     max-width: 100%;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional: Add a soft shadow */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border: 2px solid #8FBC8F; /* Add a soft green border */
 }
-
-
 
 .input-group input {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     font-size: 16px;
     border: none;
-    border-bottom: 2px solid #ccc;
+    border-bottom: 2px solid #A9A9A9;
     outline: none;
     background: transparent;
     transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .input-group input:focus {
-    border-color: #000000;
-    background-color: #f0f0f0;
+    border-color: #6B8E23; /* Olive green for focus */
+    background-color: #F0FFF0; /* Very light mint green */
 }
 
-.content button{
-    background-color: #000;
+.content button {
+    background-color: #8FBC8F; /* Sage green */
     color: #fff;
-    padding: 10px 10px;
-    border:1px solid transparent;
+    padding: 12px 20px;
+    border: 1px solid transparent;
     border-radius: 8px;
     font-weight: 600;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    margin-top: 10px;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
 }
+
 .content button:hover {
-    background-color: #494949;  /* Slightly lighter black */
+    background-color: #6B8E23; /* Olive green for hover */
     cursor: pointer;
 }
 
-
-.header-text h1, .forgot a{
-    color:#000;
+.header-text h1, .forgot a {
+    color: #556B2F; /* Dark olive green */
 }
 
 
-.right-box{
-    padding: 40px 30px 40px;
-}
-
-.switch-content{
+.switch-content {
     position: absolute;
-    top:0;
+    top: 0;
     right: 50%;
     width: 50%;
-    height:100%;
+    height: 100%;
     overflow: hidden;
-    transition:all 0.6s ease-in-out;
+    transition: all 0.6s ease-in-out;
     border-radius: 0 60px 60px 0;
     z-index: 1000;
 }
 
-.content.active .switch-content{
-    transform:translateX(100%);
+.content.active .switch-content {
+    transform: translateX(100%);
     border-radius: 60px 0 0 60px;
 }
 
-
-.switch{
-    background-color: #000;
+.switch {
+    background-color: #F5F5DC; /* Light beige */
+    background-image: linear-gradient(rgba(143, 188, 143, 0.3), rgba(143, 188, 143, 0.3)); /* Green overlay */
     height: 100%;
-    color: #fff;
+    color: #2E4F1E; /* Dark forest green */
     position: relative;
     left: -100%;
     height: 100%;
@@ -86,11 +82,11 @@
     transition: all 0.6s ease-in-out;
 }
 
-.content.active .switch{
+.content.active .switch {
     transform: translateX(50%);
 }
 
-.switch-panel{
+.switch-panel {
     position: absolute;
     width: 50%;
     height: 100%;
@@ -98,24 +94,42 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    padding: 0 30px;
+    padding: 0 40px;
     text-align: center;
     top: 0;
     transform: translateX(0);
     transition: all 0.6s ease-in-out;
 }
-.switch-left{
+
+.switch-left {
     transform: translateX(0);
 }
-.switch-right{
+
+.switch-right {
     right: 0;
     transform: translateX(0);
 }
-.content.active .switch-right{
-    transform: rotateX(200%);
+
+.content.active .switch-right {
+    transform: translateX(0);
 }
 
 .logo {
-    width:250px; 
-    margin-bottom: 10px;
+    width: 250px;
+    margin-bottom: 20px;
+}
+
+/* Additional grocery-themed elements */
+.content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+   
+}
+
+.input-group {
+    position: relative;
 }

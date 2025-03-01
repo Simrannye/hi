@@ -1,51 +1,176 @@
-header{
-    position: fixed;
-    top:0; left:0; right:0;
-    background:white;
-    padding:1rem 5%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 1000;
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.1);
+:root {
+  --primary-color: #8FBC8F; /* Changed from pink to sage green */
+  --secondary-color: #6B8E23; /* Added olive green as secondary */
+  --text-color: #2E4F1E; /* Changed to dark forest green */
+  --bg-color: white;
+  --hover-bg: rgba(143, 188, 143, 0.1); /* Changed to sage green with opacity */
+  --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styling */
+header {
+  position: fixed;
+  top: -24px; left: 0; right: 0;
+  background: var(--bg-color);
+  padding: 1rem 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease-in-out;
+  border-bottom: 3px solid rgba(143, 188, 143, 0.3); /* Added green border bottom */
+}
+
+/* Logo */
+header .logo {
+  width: 75px;
+  height: auto;
+  color: var(--text-color);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: color 0.3s;
+}
+
+header .logo span {
+  color: var(--primary-color);
+}
+
+/* Navbar Links */
+header .navbar a {
+  font-size: 1.8rem;
+  padding: 0 1.5rem;
+  color: var(--text-color);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.3s;
+  margin-left: 20px;
+}
+
+header .navbar a:hover {
+  color: var(--primary-color);
+}
+
+/* Underline Effect */
+header .navbar a::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 0;
+  height: 3px;
+  background: var(--primary-color);
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
+}
+
+header .navbar a:hover::after {
+  width: 100%;
+  left: 0;
+}
+
+.searchsubmit {
+  position: absolute;
+  top: 39px;
+  right: 100px;
+  border-radius: 50%;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+/* Icons */
+header .icons a {
+  font-size: 2.2rem;
+  color: var(--text-color);
+  margin-left: 1.5rem;
+  transition: color 0.3s, transform 0.2s;
+}
+
+header .icons a:hover {
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.search-form {
+  margin-left: 10px; 
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-form input[type="text"] {
+  padding: 5px 10px;
+  margin-top: 50px;
+  background: #868b8408;
+  font-size: 16px;
+  color: #0c0b0b;
+  border: 1px solid #ccc;
+  border-radius: 19px;
+  outline: auto;
+  height: 26px; 
+}
+
+.search-form button {
+  position: absolute;
+  right: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 19px;
+  color: var(--text-color); /* Changed to match theme */
+  margin-bottom: -28px;
+}
+
+.search-form button:focus {
+  outline: none;
+}
+
+.search-form button span {
+  visibility: hidden;
+  position: absolute;
+}
+
+.search-form input[type="text"]:hover,
+.search-form button:hover {
+  border-color: #8FBC8F; /* Changed to sage green */
+}
+
+.search-form input[type="text"]:focus {
+  box-shadow: 0 0 5px rgba(143, 188, 143, 0.7); /* Changed to sage green */
+  border: 1px solid #8FBC8F; /* Changed to sage green */
+}
+
+/* Menu Button */
+header .fa-bars {
+  font-size: 2.5rem;
+  color: var(--text-color);
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  display: none;
+  transition: all 0.3s ease;
+}
+
+header .fa-bars:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
+/* Scroll Effect */
+header.scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-bottom: 3px solid rgba(143, 188, 143, 0.6); /* Darker green border when scrolled */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header .navbar {
+      display: none;
   }
-  
-  header .logo{
-    font-size: 3rem;
-    color:#333;
-    font-weight: bolder;
+
+  header .fa-bars {
+      display: block;
   }
-  
-  header .logo span{
-    color:var(--pink);
-  }
-  
-  header .navbar a{
-    font-size: 2rem;
-    padding:0 1.5rem;
-    color:#122620;
-  }
-  
-  header .navbar a:hover{
-    color:var(--pink);
-  }
-  
-  header .icons a{
-    font-size: 2.5rem;
-    color:#333;
-    margin-left: 1.5rem;
-  }
-  
-  header .icons a:hover{
-    color:var(--pink);
-  }
-  
-  header .fa-bars{
-    font-size: 3rem;
-    color:#333;
-    border-radius: .5rem;
-    padding:.5rem 1.5rem;
-    cursor: pointer;
-    border:.1rem solid rgba(0,0,0,.3);
-    display: none;
-  }
+}

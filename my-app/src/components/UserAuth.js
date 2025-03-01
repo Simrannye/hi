@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserAuth.css';
-import logo from '../grab.png';
 
 function UserAuth() {
     const [isActive, setIsActive] = useState(false);
@@ -221,13 +220,11 @@ function UserAuth() {
             <div className='switch-content'>
                 <div className='switch'>
                     <div className='switch-panel switch-left'>
-                        <img src={logo} alt="GrabNGo Logo" className="logo" />
                         <h1>Have an account?</h1>
                         <p>We would be happy to see you back</p>
                         <button className='hidden btn border-white text-white w-50 fs-6' id='login' onClick={switchToLogin}>Login</button>
                     </div>
                     <div className='switch-panel switch-right'>
-                        <img src={logo} alt="GrabNgo Logo" className="logo" />
                         <h1>No account yet?</h1>
                         <p>Join GrabNgo, and Stay Healthy!</p>
                         <button className='hidden btn border-white text-white w-50 fs-6' id='register' onClick={switchToRegister}>Register</button>

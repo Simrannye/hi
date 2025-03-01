@@ -4,30 +4,14 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import Cart from "./components/Cart";
 import Contact from "./components/Contact";
 import Offers from "./components/Offers";
-import UserSetting from "./components/UserSetting";
-import Header from "./components/Header";
 import Profile from "./components/Profile";
 import About from "./components/About";
-import Footer from "./components/Footer";
 import UserAuth from './components/UserAuth';
 import ProtectedRoute from './components/ProtectedRoute';
+import Home from './components/Home';
+import UserSetting from "./components/UserSetting";
 
 
-
-
-// Home Page Component
-const Home = () => {
-  return (
-    <section className="home">
-      <div className="content">
-        <h3>Fresh Produce</h3>
-        <span>Locally Grown Fruits & Vegetables</span>
-        <p>We provide the best and freshest produce directly from farmers.</p>
-        <Link to="/products" className="btn">Shop Now</Link>
-      </div>
-    </section>
-  );
-};
 
 
 
@@ -40,7 +24,6 @@ function App() {
     
     <Router>
       <div className="App">
-      <Header/>
         <main>
           <Routes>
             <Route path="/" element={<ProtectedRoute>
@@ -69,7 +52,6 @@ function App() {
 
           </Routes>
         </main>
-       <Footer/>
       </div>
     </Router>
   );
