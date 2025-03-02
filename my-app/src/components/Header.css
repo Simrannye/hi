@@ -110,6 +110,21 @@ header .icons a:hover {
   height: 26px; 
 }
 
+.logout-btn{
+  display: inline-block;
+  padding: 12px 25px;
+  font-size: 1.4rem;
+  font-weight: 600; 
+  text-transform: uppercase;
+  text-decoration: none;
+  color: white;
+  background: #8FBC8F; 
+  border-radius: 8px;
+  transition: background 0.3s ease, transform 0.2s ease;
+  letter-spacing: 0.5px;
+  margin-left: 80px;
+}
+
 .search-form button {
   position: absolute;
   right: 5px;
@@ -140,7 +155,6 @@ header .icons a:hover {
   border: 1px solid #8FBC8F; /* Changed to sage green */
 }
 
-/* Menu Button */
 header .fa-bars {
   font-size: 2.5rem;
   color: var(--text-color);
@@ -157,7 +171,11 @@ header .fa-bars:hover {
   border-color: var(--primary-color);
 }
 
-/* Scroll Effect */
+.username{
+  color: white;
+  font-size: 20px;
+margin-left: 110px;}
+
 header.scrolled {
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);

@@ -277,14 +277,14 @@ section{
   display: inline-block;
   padding: 12px 25px;
   font-size: 1.6rem;
-  font-weight: 600; /* Changed from bold to 600 */
+  font-weight: 600; 
   text-transform: uppercase;
   text-decoration: none;
   color: white;
-  background: #8FBC8F; /* Changed to sage green */
-  border-radius: 8px; /* Changed from 5px to 8px */
+  background: #8FBC8F; 
+  border-radius: 8px;
   transition: background 0.3s ease, transform 0.2s ease;
-  letter-spacing: 0.5px; /* Added letter spacing */
+  letter-spacing: 0.5px;
 }
 
 /* Simple Hover Effect */

@@ -55,25 +55,9 @@
     color: rgba(255, 255, 255, 0.9);
   }
   
-  /* Button Styling */
-  .probtn {
-    display: inline-block;
-    padding: 12px 25px;
-    font-size: 1.6rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: white;
-    background: #ff4081; /* Primary color */
-    border-radius: 5px;
-    transition: background 0.3s ease, transform 0.2s ease;
-  }
+
   
-  /* Simple Hover Effect */
-  .probtn:hover {
-    background: #e03572; /* Slightly darker shade */
-    transform: translateY(-3px);
-  }
+
   
   /* Collage Section with Smooth Animation */
   .collage {

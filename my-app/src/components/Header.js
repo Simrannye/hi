@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState,useEffect} from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import logo from "../grab.png";
@@ -18,6 +18,32 @@ const Header = () => {
     const toggleSidebar = () => {
       setSidebarOpen(!isSidebarOpen);
     };
+
+    useEffect(() => {
+      // Check authentication status when component mounts
+      const checkAuthStatus = async () => {
+          try {
+              const response = await fetch('http://localhost:5000/api/auth/status', {
+                  credentials: 'include'
+              });
+
+              const data = await response.json();
+
+              if (data.authenticated) {
+                  setUser(data.user);
+              } else {
+                  setUser(null);
+              }
+          } catch (error) {
+              console.error('Failed to check auth status:', error);
+              setUser(null);
+          } finally {
+              setIsLoading(false);
+          }
+      };
+
+      checkAuthStatus();
+  }, []);
   
     const handleLogout = async () => {
       try {
@@ -68,7 +94,7 @@ const Header = () => {
   
         {/* Sidebar Component */}
         <div className={`sidebar ${isSidebarOpen ? "active" : ""}`} id="sidebar">
-          <h4>Username</h4>
+        <span className="username">{user ? user.username : "Guest"}</span> 
           <div className="profile-wrapper">
             <div className="profile-container">
             <img src={prologo} className="prologo" alt="pro Logo" />
@@ -76,8 +102,9 @@ const Header = () => {
           </div>
           <ul>
             <li><Link to="/UserSetting">Settings</Link></li>
-            <button onClick={handleLogout} className="logout-btn">Logout</button>
             <li><a href="#" onClick={toggleSidebar}>Back</a></li>
+            <button onClick={handleLogout} className="logout-btn">Logout</button>
+          
           </ul>
         </div>
       </>
