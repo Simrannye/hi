@@ -15,7 +15,7 @@ const Home = () => {
         <h3>Fresh Produce</h3>
         <span>Locally Grown Fruits & Vegetables</span>
         <p>We provide the best and freshest produce directly from farmers.</p>
-        <Link to="/products" className="probtn">Shop Now</Link>
+        <Link to="/Products" className="probtn">Shop Now</Link>
       </div>
     </section>
   

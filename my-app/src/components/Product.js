@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './Product.css'; // You can link your product styling here.
+import './Products.css'; 
 
 const Product = () => {
   const [productQuantities, setProductQuantities] = useState({

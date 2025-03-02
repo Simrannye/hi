@@ -54,10 +54,10 @@ const Header = () => {
           </form>
   
           <div className="icons">
-            <Link to="/cart" title="Cart">
+            {/* <Link to="/cart" title="Cart">
               <i className="fa-solid fa-cart-shopping"></i>
               <span className="notification">3</span>
-            </Link>
+            </Link> */}
   
             {/* Sidebar Toggle Button */}
             <a href="#sidebar" title="User Profile" onClick={toggleSidebar}>

@@ -10,6 +10,8 @@ import UserAuth from './components/UserAuth';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './components/Home';
 import UserSetting from "./components/UserSetting";
+import Products from "./components/Products";
+
 
 
 
@@ -47,6 +49,10 @@ function App() {
             <Route path="/UserSetting" element={<ProtectedRoute>
             <UserSetting />
           </ProtectedRoute>} />
+          <Route path="/Products" element={<ProtectedRoute>
+            <Products />
+          </ProtectedRoute>} />
+          
             <Route path="/userauth" element={<UserAuth />} />
             
 
