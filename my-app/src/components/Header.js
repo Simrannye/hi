@@ -70,7 +70,7 @@ const Header = () => {
           <nav className="navbar">
             <Link to="/">Home</Link>
             <Link to="/about">About</Link>
-            <Link to="/offers">Offers</Link>
+            <Link to="/products">Products</Link>
             <Link to="/contact">Contact</Link>
           </nav>
   

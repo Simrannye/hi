@@ -13,6 +13,9 @@ import UserSetting from "./components/UserSetting";
 import Products from "./components/Products";
 import Checkout from "./components/Checkout";
 import AdminPannel from "./AdminPannel";
+import khaltiConfig from "./components/khaltiConfig";
+
+
 
 
 
@@ -62,6 +65,7 @@ function App() {
           </ProtectedRoute>} />
           
             <Route path="/userauth" element={<UserAuth />} />
+            <Route path="/khalticonfig" element={<khaltiConfig />} />
             
 
           </Routes>
