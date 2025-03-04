@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const app = express();
 
 
+
 // Database configuration
 const dbConfig = {
   host: 'localhost',
@@ -396,8 +397,34 @@ app.delete("/api/orders/:id", async (req, res) => {
 });
 
 
+// KHALTI API
+
+app.post("/verify-khalti-payment", async (req, res) => {
+  const { token, amount } = req.body;
+
+  try {
+    const response = await axios.post(
+      "https://khalti.com/api/v2/payment/verify/",
+      { token, amount },
+      {
+        headers: {
+          Authorization: "test_secret_key_869603e9e63a4183ac710ac4d7eb614f", // Replace with your Khalti Secret Key
+        },
+      }
+    );
+
+    if (response.data.state.name === "Completed") {
+      return res.json({ success: true, message: "Payment Verified!" });
+    } else {
+      return res.json({ success: false, message: "Payment not completed!" });
+    }
+  } catch (error) {
+    console.error("Khalti Error:", error.response?.data || error.message);
+    return res.status(400).json({ success: false, error: error.response.data });
+  }
+});
+
+
 app.listen(5000, () => {
     console.log('Server started on http://localhost:5000');
   }); 
-
-

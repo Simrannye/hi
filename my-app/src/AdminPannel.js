@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./AdminPannel.css";
 
+
+
 const AdminPannel = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -30,6 +32,7 @@ const AdminPannel = () => {
       const response = await fetch("http://localhost:5000/api/orders");
       if (!response.ok) throw new Error("Failed to fetch orders");
       const data = await response.json();
+      console.log("Fetched Orders:", data);
       setOrders(data);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -226,6 +229,7 @@ const AdminPannel = () => {
             <th>Customer</th>
             <th>Product</th>
             <th>Quantity</th>
+            <th>Payment Method</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -235,7 +239,8 @@ const AdminPannel = () => {
     <tr key={order.id}>
       <td>{order.id}</td>
       <td>{order.customer}</td>
-      <td>{order.productName}</td>
+      <td>{order.productname}</td>
+      <td>{order.payment}</td>
       <td>{order.quantity}</td>
       <td className={order.status === "Completed" ? "completed" : "pending"}>
         {order.status}

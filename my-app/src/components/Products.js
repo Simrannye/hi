@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+
+import { Link, useNavigate } from 'react-router-dom';
 import "./Products.css";
 import Header from "./Header";
 import img from "./img-1.jpg";
 import fruit from "./img-4.jpg";
 import apple from "./img-2.jpg";
+import Checkout from './Checkout';
+import KhaltiCheckout from "khalti-checkout-web";
+import config from "./khaltiConfig";
+
+
 
 
 
@@ -191,10 +197,13 @@ const Products = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
   };
 
+
+  const navigate = useNavigate();
   // Handle checkout
   const handleCheckout = () => {
-    showNotification("Proceeding to checkout!");
-    window.location.href = "/checkout";
+    navigate("/Checkout", {
+      state: { cart, totalAmount: calculateTotal() },
+    });
   };
 
   return (
@@ -331,13 +340,12 @@ const Products = () => {
         
         {/* Added Checkout Button */}
         <div className="checkout-button-container">
-          <button 
-            className="checkout-button" 
-            onClick={handleCheckout}
-            disabled={cart.length === 0}
-          >
-            Checkout Now
-          </button>
+        <button className="checkout-button" 
+  onClick={handleCheckout}
+  disabled={cart.length === 0}
+>
+  Checkout Now
+</button>
         </div>
         
         <div className="cart-footer">
