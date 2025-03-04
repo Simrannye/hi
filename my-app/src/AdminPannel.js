@@ -4,7 +4,7 @@ import "./AdminPannel.css";
 const AdminPannel = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [form, setForm] = useState({ id: "", name: "", price: "", category: "", instock: 0 });
+  const [form, setForm] = useState({ id: "", name: "", price: "", category: "", description: "",instock: 0 });
   const [isEditing, setIsEditing] = useState(false);
 
   // Fetch products from the backend
@@ -65,7 +65,7 @@ const AdminPannel = () => {
   
       const newProduct = await response.json();
       setProducts([...products, newProduct]);
-      setForm({ id: "", name: "", price: "", category: "", instock: 0 });
+      setForm({  id: "", name: "", price: "", category: "", description: "",instock: 0 });
     } catch (error) {
       console.error("Error adding product:", error);
     }
@@ -90,7 +90,7 @@ const AdminPannel = () => {
       if (!response.ok) throw new Error("Failed to update product");
 
       fetchProducts(); // Refresh products after update
-      setForm({ id: "", name: "", price: "", category: "", instock: "" });
+      setForm({  id: "", name: "", price: "", category: "", description: "",instock: 0});
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating product:", error);
@@ -162,6 +162,14 @@ const AdminPannel = () => {
 />
 
 <input 
+  type="text" 
+  name="description" 
+  placeholder="description" 
+  value={form.description || ""} 
+  onChange={handleInputChange} 
+/>
+
+<input 
   type="number" 
   name="instock" 
   placeholder="Stock" 
@@ -186,6 +194,7 @@ const AdminPannel = () => {
             <th>Name</th>
             <th>Price</th>
             <th>Category</th>
+            <th>Description</th>
             <th>Stock</th>
             <th>Actions</th>
           </tr>
@@ -197,6 +206,7 @@ const AdminPannel = () => {
               <td>{product.name}</td>
               <td>NPR {product.price}</td>
               <td>{product.category}</td>
+              <td>{product.description}</td>
               <td>{product.instock}</td>
               <td>
                 <button className="admin-btn admin-edit-btn" onClick={() => editProduct(product)}>Edit</button>

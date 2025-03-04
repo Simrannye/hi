@@ -246,18 +246,19 @@ app.get("/api/products", async (req, res) => {
 // Add a New Product
 app.post("/api/products", async (req, res) => {
   try {
-    const { name, price, category, instock } = req.body;
+    const { name, price, category, description, instock } = req.body;
 
-    if (!name || !price || !category || instock === undefined) {
+    if (!name || !price || !category || !description || instock === null) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const [result] = await pool.query(
-      "INSERT INTO products (name, price, category, instock) VALUES (?, ?, ?, ?)",
-      [name, price, category, instock]
+      "INSERT INTO products (name, price, category, description, instock) VALUES (?, ?, ?, ?, ?)",
+      [name, price, category, description, instock]
     );
+    
 
-    res.status(201).json({ id: result.insertId, name, price, category, instock });
+    res.status(201).json({ id: result.insertId, name, price, category, description, instock });
   } catch (error) {
     console.error("Error adding product:", error);
     res.status(500).json({ message: "Server error" });
@@ -267,23 +268,24 @@ app.post("/api/products", async (req, res) => {
 // Update Product
 app.put("/api/products/:id", async (req, res) => {
   try {
-    const { name, price, category, instock } = req.body;
+    const { name, price, category, description, instock } = req.body;
     const { id } = req.params;
 
-    if (!name || !price || !category || instock === undefined) {
+    if (!name || !price || !category || !description || instock === undefined) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const [result] = await pool.query(
-      "UPDATE products SET name = ?, price = ?, category = ?, instock = ? WHERE id = ?",
-      [name, price, category, instock, id]
+      "UPDATE products SET name = ?, price = ?, category = ?, description = ?, instock = ? WHERE id = ?",
+      [name, price, category, description, instock, id]
     );
+    
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.json({ id, name, price, category, instock });
+  res.json({ id, name, price, category, description, instock });
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(500).json({ message: "Server error" });
@@ -320,6 +322,7 @@ app.get("/api/orders", async (req, res) => {
 });
 
 // Add a new order
+// Add a new order
 app.post("/api/orders", async (req, res) => {
   try {
     const { customer, product_name, quantity } = req.body;
@@ -328,8 +331,9 @@ app.post("/api/orders", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    // ✅ Updated query with default 'Pending' status
     const [result] = await pool.query(
-      "INSERT INTO orders (customer, product_name, quantity) VALUES (?, ?, ?)",
+      "INSERT INTO orders (customer, product_name, quantity, status) VALUES (?, ?, ?, 'Pending')",
       [customer, product_name, quantity]
     );
 
@@ -338,13 +342,14 @@ app.post("/api/orders", async (req, res) => {
       customer, 
       product_name, 
       quantity, 
-      status: "Pending" 
+      status: "Pending" // Ensure status is included in response
     });
   } catch (error) {
     console.error("Error adding order:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // Update order status (Pending → Completed)
 app.put("/api/orders/:id", async (req, res) => {

@@ -14,11 +14,11 @@ const Products = () => {
   const [products, setProducts] = useState([
     {
       id: 1,
-      name: "Organic Bananas",
+      name: "Organic Mangoes",
       price: 250,
       category: "fruit",
       image: fruit,
-      description: "Fresh organic bananas, perfect for smoothies and snacks.",
+      description: "Fresh organic mangoes, perfect for smoothies and snacks.",
       inStock: true,
       quantity: 0
     },
@@ -193,9 +193,7 @@ const Products = () => {
 
   // Handle checkout
   const handleCheckout = () => {
-    // You can add checkout logic here
     showNotification("Proceeding to checkout!");
-    // Redirect to checkout page
     window.location.href = "/checkout";
   };
 
