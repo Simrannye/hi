@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import "./Products.css";
 import Header from "./Header";
+import img from "./img-1.jpg";
+import fruit from "./img-4.jpg";
+import apple from "./img-2.jpg";
+
+
+
 
 const Products = () => {
   // Product data with Nepali prices (NPR)
@@ -11,7 +17,7 @@ const Products = () => {
       name: "Organic Bananas",
       price: 250,
       category: "fruit",
-      image: "",
+      image: fruit,
       description: "Fresh organic bananas, perfect for smoothies and snacks.",
       inStock: true,
       quantity: 0
@@ -21,7 +27,7 @@ const Products = () => {
       name: "Red Apples",
       price: 320,
       category: "fruit",
-      image: "",
+      image: apple,
       description: "Crisp and juicy red apples, locally sourced.",
       inStock: true,
       quantity: 0
@@ -71,7 +77,7 @@ const Products = () => {
       name: "Ground Beef",
       price: 1020,
       category: "meat",
-      image: "",
+      image: img,
       description: "Lean ground beef, perfect for burgers and tacos.",
       inStock: true,
       quantity: 0
@@ -81,7 +87,7 @@ const Products = () => {
       name: "Chicken Breast",
       price: 900,
       category: "meat",
-      image: "",
+      image: "./img-1.jpg",
       description: "Boneless, skinless chicken breasts from free-range chickens.",
       inStock: true,
       quantity: 0
@@ -177,12 +183,20 @@ const Products = () => {
     setNotification(message);
     setTimeout(() => {
       setNotification('');
-    }, 3000);
+    }, 1000);
   };
 
   // Calculate cart total
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+  };
+
+  // Handle checkout
+  const handleCheckout = () => {
+    // You can add checkout logic here
+    showNotification("Proceeding to checkout!");
+    // Redirect to checkout page
+    window.location.href = "/checkout";
   };
 
   return (
@@ -309,6 +323,23 @@ const Products = () => {
               </div>
             ))
           )}
+        </div>
+        
+        {/* Cart Total Display Section */}
+        <div className="cart-subtotal">
+          <span className="subtotal-label">Total Amount:</span>
+          <span className="subtotal-value">NPR {calculateTotal()}</span>
+        </div>
+        
+        {/* Added Checkout Button */}
+        <div className="checkout-button-container">
+          <button 
+            className="checkout-button" 
+            onClick={handleCheckout}
+            disabled={cart.length === 0}
+          >
+            Checkout Now
+          </button>
         </div>
         
         <div className="cart-footer">

@@ -29,7 +29,7 @@ const sessionStore = new MySQLStore({
 // Middleware
 app.use(cors({
   origin: 'http://localhost:3000', // Your React app's origin
-  credentials: true // Allow cookies to be sent with requests
+  credentials: true // Allow cookies & authentication headers
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -231,6 +231,168 @@ app.post('/api/auth/logout', (req, res) => {
     });
   });
 });
+
+// Get All Products
+app.get("/api/products", async (req, res) => {
+  try {
+    const [products] = await pool.query("SELECT * FROM products");
+    res.json(products);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Add a New Product
+app.post("/api/products", async (req, res) => {
+  try {
+    const { name, price, category, instock } = req.body;
+
+    if (!name || !price || !category || instock === undefined) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const [result] = await pool.query(
+      "INSERT INTO products (name, price, category, instock) VALUES (?, ?, ?, ?)",
+      [name, price, category, instock]
+    );
+
+    res.status(201).json({ id: result.insertId, name, price, category, instock });
+  } catch (error) {
+    console.error("Error adding product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update Product
+app.put("/api/products/:id", async (req, res) => {
+  try {
+    const { name, price, category, instock } = req.body;
+    const { id } = req.params;
+
+    if (!name || !price || !category || instock === undefined) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const [result] = await pool.query(
+      "UPDATE products SET name = ?, price = ?, category = ?, instock = ? WHERE id = ?",
+      [name, price, category, instock, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.json({ id, name, price, category, instock });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Delete Product
+app.delete("/api/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [result] = await pool.query("DELETE FROM products WHERE id = ?", [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get all orders
+app.get("/api/orders", async (req, res) => {
+  try {
+    const [orders] = await pool.query("SELECT * FROM orders ORDER BY created_at DESC");
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Add a new order
+app.post("/api/orders", async (req, res) => {
+  try {
+    const { customer, product_name, quantity } = req.body;
+
+    if (!customer || !product_name || !quantity) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const [result] = await pool.query(
+      "INSERT INTO orders (customer, product_name, quantity) VALUES (?, ?, ?)",
+      [customer, product_name, quantity]
+    );
+
+    res.status(201).json({ 
+      id: result.insertId, 
+      customer, 
+      product_name, 
+      quantity, 
+      status: "Pending" 
+    });
+  } catch (error) {
+    console.error("Error adding order:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update order status (Pending → Completed)
+app.put("/api/orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ message: "Order status is required" });
+    }
+
+    const [result] = await pool.query(
+      "UPDATE orders SET status = ? WHERE id = ?",
+      [status, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json({ message: "Order status updated successfully" });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Delete an order
+app.delete("/api/orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [result] = await pool.query("DELETE FROM orders WHERE id = ?", [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    res.json({ message: "Order deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 app.listen(5000, () => {
     console.log('Server started on http://localhost:5000');
   }); 
+
+

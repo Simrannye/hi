@@ -11,6 +11,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Home from './components/Home';
 import UserSetting from "./components/UserSetting";
 import Products from "./components/Products";
+import Checkout from "./components/Checkout";
+import AdminPannel from "./AdminPannel";
 
 
 
@@ -51,6 +53,12 @@ function App() {
           </ProtectedRoute>} />
           <Route path="/Products" element={<ProtectedRoute>
             <Products />
+          </ProtectedRoute>} />
+          <Route path="/Checkout" element={<ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>} />
+          <Route path="/AdminPannel" element={<ProtectedRoute>
+            <AdminPannel />
           </ProtectedRoute>} />
           
             <Route path="/userauth" element={<UserAuth />} />

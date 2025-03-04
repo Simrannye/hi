@@ -1,0 +1,153 @@
+/* General Container */
+.admin-panel-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: "Arial", sans-serif;
+  }
+  
+  /* Headings */
+  .admin-heading {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .admin-subheading {
+    font-size: 20px;
+    font-weight: bold;
+    color: #555;
+    margin-top: 30px;
+    margin-bottom: 10px;
+  }
+  
+  /* Product Form */
+  .admin-product-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .admin-product-form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  /* Buttons */
+  .admin-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .admin-add-btn {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .admin-update-btn {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .admin-edit-btn {
+    background-color: #ffc107;
+    color: white;
+    width: 100px;
+  }
+  
+  .admin-delete-btn {
+    background-color: #dc3545;
+    color: white;
+    width: 100px;
+  }
+  
+  .admin-status-btn {
+    background-color: #17a2b8;
+    color: white;
+    width: 150px;
+  }
+  
+  /* Hover Effects */
+  .admin-btn:hover {
+    opacity: 0.85;
+  }
+  
+  /* Tables */
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .admin-table th, .admin-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .admin-table th {
+    background-color: #f8f9fa;
+  }
+  
+  /* Order Status */
+  .status-pending {
+    color: #ff9800;
+    font-weight: bold;
+  }
+  
+  .status-completed {
+    color: #28a745;
+    font-weight: bold;
+  }
+  
+  /* Search Bar */
+  .admin-search-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .admin-search-input {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+
+  /* Order Status Styling */
+.admin-table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;
+  }
+  
+  /* Highlight Completed Orders in Green */
+  .admin-table td.completed {
+    background-color: #d4edda; 
+    color: #155724; 
+    font-weight: bold;
+  }
+  
+  /* Highlight Pending Orders in Red */
+  .admin-table td.pending {
+    background-color: #f8d7da; 
+    color: #721c24; 
+    font-weight: bold;
+  }
+  
