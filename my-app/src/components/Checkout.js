@@ -18,48 +18,14 @@ const Checkout = () => {
     khaltiCheckout.show({ amount: totalAmount * 100 }); // Khalti requires paisa
   };
 
-  const handleCOD = async () => {
-    const orderDetails = {
-      customer: "John Doe", // Replace with actual user name from authentication
-      cart: cart.map(item => ({
-        productname: item.name,
-        quantity: item.quantity
-      })),
-      totalAmount,
-      payment: "Cash",
-      status: "Pending",
-    };
-  
-    try {
-      const response = await fetch("http://localhost:5000/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderDetails),
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        alert(" Order placed successfully!", {
-          position: "top-center",
-          autoClose: 3000,
-        });
-  
-        setTimeout(() => {
-          navigate("/");
-        }, 3000);
-      } else {
-        alert("Order placement failed!");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert(" Server error! Try again later.");
-    }
+  const handleCOD = () => {
+    // Just redirect to the home page ("/") without storing any order in the database
+    alert("Order placed successfully with Cash on Delivery!");
+    setTimeout(() => {
+      navigate("/");  // Redirect to the home page after 3 seconds
+    }, 0);
   };
-  
-  
+
   return (
     <>
       <Header />
