@@ -5,7 +5,7 @@ const config = {
     productUrl: "http://localhost:3000/checkout", 
     eventHandler: {
       onSuccess(payload) {
-        console.log("Payment Successful", payload);
+        console.log("Payment Successful", payload); 
         alert("Payment Successful! Your order is confirmed.");
       },
       onError(error) {
@@ -20,3 +20,4 @@ const config = {
 };
 
 export default config;
+

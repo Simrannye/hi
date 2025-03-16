@@ -8,7 +8,7 @@ import fruit from "./img-4.jpg";
 import apple from "./img-2.jpg";
 import Checkout from './Checkout';
 import KhaltiCheckout from "khalti-checkout-web";
-import config from "./khaltiConfig";
+import config from "./config";
 
 
 

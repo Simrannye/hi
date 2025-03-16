@@ -7,6 +7,13 @@ const MySQLStore = require('express-mysql-session')(session);
 const bodyParser = require('body-parser');
 const app = express();
 
+require("dotenv").config();
+
+const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
+console.log("Khalti Secret Key:", khaltiSecretKey); 
+
+console.log("Khalti Secret Key:", process.env.KHALTI_SECRET_KEY);
+
 
 
 // Database configuration
@@ -22,15 +29,15 @@ const pool = mysql.createPool(dbConfig);
 
 // Session store options
 const sessionStore = new MySQLStore({
-  checkExpirationInterval: 900000, // How frequently to check for expired sessions (15 mins)
-  expiration: 86400000, // Session expiration (24 hours)
-  createDatabaseTable: true // Create sessions table if it doesn't exist
+  checkExpirationInterval: 900000, 
+  expiration: 86400000, 
+  createDatabaseTable: true 
 }, pool);
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000', // Your React app's origin
-  credentials: true // Allow cookies & authentication headers
+  origin: 'http://localhost:3000', 
+  credentials: true 
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,14 +45,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Set up session middleware
 app.use(session({
   key: 'session_cookie_name',
-  secret: 'session_cookie_secret', // Use a strong secret in production
+  secret: 'session_cookie_secret', 
   store: sessionStore,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 86400000, // 24 hours
+    maxAge: 86400000, 
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' // Use secure cookies in production
+    secure: process.env.NODE_ENV === 'production' 
   }
 }));
 
@@ -343,7 +350,7 @@ app.post("/api/orders", async (req, res) => {
       customer, 
       product_name, 
       quantity, 
-      status: "Pending" // Ensure status is included in response
+      status: "Pending" 
     });
   } catch (error) {
     console.error("Error adding order:", error);
@@ -397,33 +404,57 @@ app.delete("/api/orders/:id", async (req, res) => {
 });
 
 
+
+
 // KHALTI API
-
-app.post("/verify-khalti-payment", async (req, res) => {
-  const { token, amount } = req.body;
-
+app.post("/initiate-khalti-payment", async (req, res) => {
+  console.log("0000000000000000000000000000000")
+  const payload = {
+      return_url: "http://localhost:3000/payment-sucess",
+      website_url: "http://localhost:3000",
+      amount: 1300,
+      purchase_order_id: "test12",
+      purchase_order_name: "test",
+      customer_info: {
+          name: "Khalti Bahadur",
+          email: "example@gmail.com",
+          phone: "9800000123"
+      },
+      amount_breakdown: [
+          { label: "Mark Price", amount: 1000 },
+          { label: "VAT", amount: 300 }
+      ],
+      product_details: [
+          {
+              identity: "1234567890",
+              name: "Khalti logo",
+              total_price: 1300,
+              quantity: 1,
+              unit_price: 1300
+          }
+      ],
+      merchant_username: "merchant_name",
+      merchant_extra: "merchant_extra"
+  };
+  console.log("66666666666666666666666666666666")
   try {
-    const response = await axios.post(
-      "https://khalti.com/api/v2/payment/verify/",
-      { token, amount },
-      {
-        headers: {
-          Authorization: "test_secret_key_869603e9e63a4183ac710ac4d7eb614f", // Replace with your Khalti Secret Key
-        },
-      }
-    );
+      const response = await axios.post(
+          "https://dev.khalti.com/api/v2/epayment/initiate/",
+          payload,
+          {
+              headers: {
+                  Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
+                  "Content-Type": "application/json"
+              }
+          }
+      );
 
-    if (response.data.state.name === "Completed") {
-      return res.json({ success: true, message: "Payment Verified!" });
-    } else {
-      return res.json({ success: false, message: "Payment not completed!" });
-    }
+      res.json(response.data);
   } catch (error) {
-    console.error("Khalti Error:", error.response?.data || error.message);
-    return res.status(400).json({ success: false, error: error.response.data });
+      console.error("Khalti API Error:", error.response?.data || error.message);
+      res.status(400).json({ success: false, error: error.response?.data || "Unknown error" });
   }
 });
-
 
 app.listen(5000, () => {
     console.log('Server started on http://localhost:5000');

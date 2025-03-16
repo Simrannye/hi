@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from "react-router-dom";
 import KhaltiCheckout from "khalti-checkout-web";
-import config from "./khaltiConfig";
+import config from "./config";
 import Header from "./Header"; 
 import './Checkout.css';
 import cartImage from "./cart.jpg"; // Import cart image

@@ -17,7 +17,9 @@ const Profile = () => {
     return (
     <section className="profile">
       <h1 className="heading">User <span>Profile</span></h1>
+
       <div className="content">
+        
         <p>Your profile information will appear here</p>
       </div>
     </section>
