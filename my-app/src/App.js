@@ -14,6 +14,7 @@ import Products from "./components/Products";
 import Checkout from "./components/Checkout";
 import AdminPannel from "./AdminPannel";
 import khaltiConfig from "./components/config";
+import ForgotPassword from './components/ForgotPassword';
 
 
 
@@ -65,6 +66,7 @@ function App() {
           
             <Route path="/userauth" element={<UserAuth />} />
             <Route path="/khalticonfig" element={<khaltiConfig />} />
+            <Route path="/forgot" element={<ForgotPassword />} />
             
 
           </Routes>
