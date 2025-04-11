@@ -363,3 +363,86 @@
       font-size: 14px;
     }
   }
+
+  /* Add these styles to your existing Products.css file */
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #4CAF50;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-message {
+  color: #e53e3e;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.retry-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.retry-button:hover {
+  background-color: #388e3c;
+}
+
+.no-products {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.no-image {
+  background-color: #f0f0f0;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 0.9rem;
+  border-radius: 8px 8px 0 0;
+}
+
+.stock-warning {
+  color: #e63946;
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-top: 5px;
+}

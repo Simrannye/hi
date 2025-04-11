@@ -129,6 +129,79 @@
   box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
+.checkout-summary {
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.processing-message {
+  margin-top: 15px;
+  text-align: center;
+  color: #666;
+}
+
+.error-message {
+  color: #d9534f;
+  margin: 10px 0;
+  font-weight: bold;
+  text-align: center;
+}
+
+.error-container {
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 4px;
+  padding: 12px;
+  margin: 15px 0;
+}
+
+.error-message {
+  color: #e53e3e;
+  margin: 0;
+  text-align: center;
+}
+
+.retry-button {
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s;
+}
+
+.retry-button:hover {
+  background-color: #2b6cb0;
+}
+
+.processing-message {
+  margin-top: 15px;
+  text-align: center;
+  color: #4a5568;
+  font-style: italic;
+}
+
+/* Make the cash on delivery option more prominent in fallback case */
+.cod-button {
+  background-color: #48bb78;
+  color: white;
+  font-weight: bold;
+}
+
+.cod-button:hover {
+  background-color: #38a169;
+}
+
 @media (max-width: 600px) {
   .checkout-container {
     width: 90%;

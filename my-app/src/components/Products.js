@@ -1,111 +1,63 @@
 import React, { useState, useEffect } from 'react';
-
+import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import "./Products.css";
 import Header from "./Header";
-import img from "./img-1.jpg";
-import fruit from "./img-4.jpg";
-import apple from "./img-2.jpg";
-import Checkout from './Checkout';
-import KhaltiCheckout from "khalti-checkout-web";
-import config from "./config";
-
-
-
-
-
 
 const Products = () => {
-  // Product data with Nepali prices (NPR)
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Organic Mangoes",
-      price: 250,
-      category: "fruit",
-      image: fruit,
-      description: "Fresh organic mangoes, perfect for smoothies and snacks.",
-      inStock: true,
-      quantity: 0
-    },
-    {
-      id: 2,
-      name: "Red Apples",
-      price: 320,
-      category: "fruit",
-      image: apple,
-      description: "Crisp and juicy red apples, locally sourced.",
-      inStock: true,
-      quantity: 0
-    },
-    {
-      id: 3,
-      name: "Whole Milk",
-      price: 510,
-      category: "dairy",
-      image: "",
-      description: "Farm fresh whole milk, pasteurized and homogenized.",
-      inStock: true,
-      quantity: 0
-    },
-    {
-      id: 4,
-      name: "Sourdough Bread",
-      price: 580,
-      category: "bakery",
-      image: "",
-      description: "Artisanal sourdough bread baked fresh daily.",
-      inStock: true,
-      quantity: 0
-    },
-    {
-      id: 5,
-      name: "Free-Range Eggs",
-      price: 760,
-      category: "dairy",
-      image: "",
-      description: "",
-      inStock: true,
-      quantity: 0
-    },
-    {
-      id: 6,
-      name: "Organic Spinach",
-      price: 450,
-      category: "vegetable",
-      image: "",
-      description: "Fresh organic spinach, washed and ready to eat.",
-      inStock: false,
-      quantity: 0
-    },
-    {
-      id: 7,
-      name: "Ground Beef",
-      price: 1020,
-      category: "meat",
-      image: img,
-      description: "Lean ground beef, perfect for burgers and tacos.",
-      inStock: true,
-      quantity: 0
-    },
-    {
-      id: 8,
-      name: "Chicken Breast",
-      price: 900,
-      category: "meat",
-      image: "./img-1.jpg",
-      description: "Boneless, skinless chicken breasts from free-range chickens.",
-      inStock: true,
-      quantity: 0
-    }
-  ]);
-
   // State variables
+  const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [notification, setNotification] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+
+  // Fetch products from database
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:5000/api/products');
+        const productsWithQuantity = response.data.map(product => ({
+          ...product,
+          quantity: 0,
+          inStock: product.instock > 0
+        }));
+        setProducts(productsWithQuantity);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again later.');
+        setLoading(false);
+      }
+    };
+  
+    const fetchCartIfAuthenticated = async () => {
+      try {
+        const authRes = await axios.get('http://localhost:5000/api/auth/status', {
+          withCredentials: true
+        });
+  
+        if (authRes.data.authenticated) {
+          const cartRes = await axios.get('http://localhost:5000/api/cart', {
+            withCredentials: true
+          });
+          setCart(cartRes.data);
+        }
+      } catch (err) {
+        console.error("Error checking auth or loading cart:", err);
+      }
+    };
+  
+    fetchProducts();
+    fetchCartIfAuthenticated();
+    
+  }, []);
 
   // Filter products when category changes
   useEffect(() => {
@@ -118,14 +70,20 @@ const Products = () => {
 
   // Handle quantity increase
   const increaseQuantity = (id) => {
-    setProducts(prevProducts => 
-      prevProducts.map(product => 
-        product.id === id 
-          ? { ...product, quantity: product.quantity + 1 } 
+    setProducts(prevProducts =>
+      prevProducts.map(product =>
+        product.id === id
+          ? {
+              ...product,
+              quantity: product.quantity < product.instock
+                ? product.quantity + 1
+                : product.quantity // prevent exceeding
+            }
           : product
       )
     );
   };
+  
 
   // Handle quantity decrease
   const decreaseQuantity = (id) => {
@@ -138,41 +96,58 @@ const Products = () => {
     );
   };
 
-  // Add product to cart
-  const addToCart = (id) => {
+  const addToCart = async (id) => {
     const product = products.find(p => p.id === id);
-    
-    if (!product || product.quantity === 0) return;
-    
-    setCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(item => item.id === id);
-      
-      if (existingItemIndex >= 0) {
-        // Item already in cart, update quantity
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += product.quantity;
-        return updatedCart;
-      } else {
-        // Add new item to cart
-        return [...prevCart, {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: product.quantity
-        }];
-      }
-    });
-    
-    // Reset product quantity
-    setProducts(prevProducts => 
-      prevProducts.map(p => 
-        p.id === id ? { ...p, quantity: 0 } : p
-      )
-    );
-    
-    // Show notification
-    showNotification(`Added ${product.name} to cart!`);
+  
+    if (!product) return;
+  
+    // ⛔ Block if quantity is 0 or exceeds in-stock
+    if (product.quantity === 0 || product.quantity > product.instock) {
+      showNotification(`Only ${product.instock} available in stock`);
+      return;
+    }
+  
+    try {
+      // Save to backend
+      await axios.post('http://localhost:5000/api/cart', {
+        product_id: product.id,
+        quantity: product.quantity
+      }, {
+        withCredentials: true
+      });
+  
+      // Update local cart
+      setCart(prevCart => {
+        const existingItemIndex = prevCart.findIndex(item => item.id === id);
+        if (existingItemIndex >= 0) {
+          const updatedCart = [...prevCart];
+          updatedCart[existingItemIndex].quantity += product.quantity;
+          return updatedCart;
+        } else {
+          return [...prevCart, {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: product.quantity
+          }];
+        }
+      });
+  
+      // Reset input quantity
+      setProducts(prevProducts =>
+        prevProducts.map(p =>
+          p.id === id ? { ...p, quantity: 0 } : p
+        )
+      );
+  
+      showNotification(`Added ${product.name} to cart!`);
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      showNotification("Error adding to cart.");
+    }
   };
+  
+  
 
   // Remove item from cart
   const removeFromCart = (id) => {
@@ -197,14 +172,41 @@ const Products = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
   };
 
-
-  const navigate = useNavigate();
   // Handle checkout
   const handleCheckout = () => {
     navigate("/Checkout", {
       state: { cart, totalAmount: calculateTotal() },
     });
   };
+
+  // Get unique categories from products
+  const categories = ['all', ...new Set(products.map(product => product.category))];
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading products...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Header />
+        <div className="error-container">
+          <p className="error-message">{error}</p>
+          <button onClick={() => window.location.reload()} className="retry-button">
+            Try Again
+          </button>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -222,85 +224,73 @@ const Products = () => {
         
         {/* Filter Section */}
         <div className="filter-section">
-          <button 
-            className={`filter-btn ${activeCategory === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('all')}
-          >
-            All Products
-          </button>
-          <button 
-            className={`filter-btn ${activeCategory === 'fruit' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('fruit')}
-          >
-            Fruits
-          </button>
-          <button 
-            className={`filter-btn ${activeCategory === 'vegetable' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('vegetable')}
-          >
-            Vegetables
-          </button>
-          <button 
-            className={`filter-btn ${activeCategory === 'dairy' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('dairy')}
-          >
-            Dairy
-          </button>
-          <button 
-            className={`filter-btn ${activeCategory === 'bakery' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('bakery')}
-          >
-            Bakery
-          </button>
-          <button 
-            className={`filter-btn ${activeCategory === 'meat' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('meat')}
-          >
-            Meat
-          </button>
+          {categories.map(category => (
+            <button 
+              key={category}
+              className={`filter-btn ${activeCategory === category ? 'active' : ''}`}
+              onClick={() => setActiveCategory(category)}
+            >
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </button>
+          ))}
         </div>
         
         {/* Products Grid */}
         <div className="products-grid">
-          {filteredProducts.map(product => (
-            <div 
-              key={product.id} 
-              className={`product-card ${!product.inStock ? 'out-of-stock' : ''}`}
-            >
-              <img src={product.image} alt={product.name} className="product-image" />
-              <h3 className="product-name">{product.name}</h3>
-              <p className="product-price">NPR {product.price.toFixed(2)}</p>
-              <p className="product-description">{product.description}</p>
-              
-              {!product.inStock ? (
-                <span className="out-of-stock-label">Out of Stock</span>
-              ) : (
-                <>
-                  <div className="quantity-controls">
+          {filteredProducts.length === 0 ? (
+            <p className="no-products">No products found in this category</p>
+          ) : (
+            filteredProducts.map(product => (
+              <div 
+                key={product.id} 
+                className={`product-card ${!product.inStock ? 'out-of-stock' : ''}`}
+              >
+                {product.image ? (
+                  <img src={product.image} alt={product.name} className="product-image" />
+                ) : (
+                  <div className="no-image">No Image Available</div>
+                )}
+                <h3 className="product-name">{product.name}</h3>
+                <p className="product-price">NPR {Number(product.price).toFixed(2)}</p>
+                <p className="product-description">{product.description}</p>
+                
+                {!product.inStock ? (
+                  <span className="out-of-stock-label">Out of Stock</span>
+                ) : (
+                  <>
+<div className="quantity-controls">
+  <button 
+    className="quantity-btn decrease" 
+    onClick={() => decreaseQuantity(product.id)}
+  >
+    -
+  </button>
+  <span className="quantity">{product.quantity}</span>
+  <button 
+    className="quantity-btn increase" 
+    onClick={() => increaseQuantity(product.id)}
+    disabled={product.quantity >= product.instock}
+    title={product.quantity >= product.instock ? 'Reached max available stock' : ''}
+  >
+    +
+  </button>
+</div>
+
+{product.quantity >= product.instock && (
+  <p className="stock-warning">Only {product.instock} available in stock</p>
+)}
+
                     <button 
-                      className="quantity-btn decrease" 
-                      onClick={() => decreaseQuantity(product.id)}
+                      className="add-to-cart-btn" 
+                      onClick={() => addToCart(product.id)}
                     >
-                      -
+                      Add to Cart
                     </button>
-                    <span className="quantity">{product.quantity}</span>
-                    <button 
-                      className="quantity-btn increase" 
-                      onClick={() => increaseQuantity(product.id)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button 
-                    className="add-to-cart-btn" 
-                    onClick={() => addToCart(product.id)}
-                  >
-                    Add to Cart
-                  </button>
-                </>
-              )}
-            </div>
-          ))}
+                  </>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
       
@@ -340,12 +330,13 @@ const Products = () => {
         
         {/* Added Checkout Button */}
         <div className="checkout-button-container">
-        <button className="checkout-button" 
-  onClick={handleCheckout}
-  disabled={cart.length === 0}
->
-  Checkout Now
-</button>
+          <button 
+            className="checkout-button" 
+            onClick={handleCheckout}
+            disabled={cart.length === 0}
+          >
+            Checkout Now
+          </button>
         </div>
         
         <div className="cart-footer">

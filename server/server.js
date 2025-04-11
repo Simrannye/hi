@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const app = express();
-
+const axios = require('axios');
 require("dotenv").config();
 
 const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
@@ -816,6 +816,75 @@ app.delete("/api/products/:id", async (req, res) => {
   }
 });
 
+
+// Save or update cart item
+app.post('/api/cart', isAuthenticated, async (req, res) => {
+  const { product_id, quantity } = req.body;
+  const user_id = req.session.user.id;
+
+  if (!product_id || quantity == null) {
+    return res.status(400).json({ success: false, message: 'Missing product or quantity' });
+  }
+
+  try {
+    const [existing] = await pool.query(
+      'SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?',
+      [user_id, product_id]
+    );
+
+    if (existing.length > 0) {
+      await pool.query(
+        'UPDATE cart_items SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?',
+        [quantity, user_id, product_id]
+      );
+    } else {
+      await pool.query(
+        'INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)',
+        [user_id, product_id, quantity]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error saving cart:", error);
+    res.status(500).json({ message: "Failed to save cart" });
+  }
+});
+
+
+
+// Get saved cart items for logged-in user
+app.get('/api/cart', isAuthenticated, async (req, res) => {
+  const user_id = req.session.user.id;
+  try {
+    const [cartItems] = await pool.query(`
+      SELECT c.product_id AS id, p.name, p.price, c.quantity
+      FROM cart_items c
+      JOIN products p ON c.product_id = p.id
+      WHERE c.user_id = ?
+    `, [user_id]);
+
+    res.json(cartItems);
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+app.delete('/api/cart/clear', isAuthenticated, async (req, res) => {
+  const user_id = req.session.user.id;
+  try {
+    await pool.query('DELETE FROM cart_items WHERE user_id = ?', [user_id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error clearing cart:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 // Get all orders
 app.get("/api/orders", async (req, res) => {
   try {
@@ -828,33 +897,39 @@ app.get("/api/orders", async (req, res) => {
 });
 
 // Add a new order
-// Add a new order
-app.post("/api/orders", async (req, res) => {
+app.post('/api/orders', async (req, res) => {
+  const { customer, items, totalAmount, paymentMethod, orderDate } = req.body;
+
+  if (!customer || !items || items.length === 0 || !paymentMethod) {
+    return res.status(400).json({ message: 'Missing order details' });
+  }
+
   try {
-    const { customer, product_name, quantity } = req.body;
+    const productNames = items.map(item => `${item.name} x ${item.quantity}`).join(', ');
+    const totalQty = items.reduce((sum, item) => sum + item.quantity, 0);
 
-    if (!customer || !product_name || !quantity) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+    //  Convert ISO date to MySQL DATETIME format
+    const formattedDate = new Date(orderDate || Date.now())
+      .toISOString()
+      .slice(0, 19)
+      .replace('T', ' ');
 
-    // ✅ Updated query with default 'Pending' status
-    const [result] = await pool.query(
-      "INSERT INTO orders (customer, product_name, quantity, status) VALUES (?, ?, ?, 'Pending')",
-      [customer, product_name, quantity]
+    await pool.query(
+      'INSERT INTO orders (customer, product_name, quantity, payment, status, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [customer, productNames, totalQty, paymentMethod, 'Pending', formattedDate]
     );
 
-    res.status(201).json({ 
-      id: result.insertId, 
-      customer, 
-      product_name, 
-      quantity, 
-      status: "Pending" 
-    });
-  } catch (error) {
-    console.error("Error adding order:", error);
-    res.status(500).json({ message: "Server error" });
+    res.json({ success: true, message: 'Order saved' });
+  } catch (err) {
+    console.error(' Error saving order to DB:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+
+
+
+
 
 
 // Update order status (Pending → Completed)
@@ -904,55 +979,137 @@ app.delete("/api/orders/:id", async (req, res) => {
 
 
 
-// KHALTI API
-app.post("/initiate-khalti-payment", async (req, res) => {
-  console.log("0000000000000000000000000000000")
-  const payload = {
-      return_url: "http://localhost:3000/payment-sucess",
-      website_url: "http://localhost:3000",
-      amount: 1300,
-      purchase_order_id: "test12",
-      purchase_order_name: "test",
-      customer_info: {
-          name: "Khalti Bahadur",
-          email: "example@gmail.com",
-          phone: "9800000123"
-      },
-      amount_breakdown: [
-          { label: "Mark Price", amount: 1000 },
-          { label: "VAT", amount: 300 }
-      ],
-      product_details: [
-          {
-              identity: "1234567890",
-              name: "Khalti logo",
-              total_price: 1300,
-              quantity: 1,
-              unit_price: 1300
-          }
-      ],
-      merchant_username: "merchant_name",
-      merchant_extra: "merchant_extra"
-  };
-  console.log("66666666666666666666666666666666")
-  try {
-      const response = await axios.post(
-          "https://dev.khalti.com/api/v2/epayment/initiate/",
-          payload,
-          {
-              headers: {
-                  Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
-                  "Content-Type": "application/json"
-              }
-          }
-      );
 
-      res.json(response.data);
+app.post('/api/khalti/initiate', async (req, res) => {
+  try {
+    // Check if KHALTI_SECRET_KEY is set
+    if (!process.env.KHALTI_SECRET_KEY) {
+      console.error('KHALTI_SECRET_KEY is not set in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Payment service configuration error: Missing API key'
+      });
+    }
+
+    // Extract payment data from request
+    const {
+      return_url,
+      website_url,
+      amount,
+      purchase_order_id,
+      purchase_order_name,
+      customer_info
+    } = req.body;
+
+    // Validate required fields
+    if (!return_url || !website_url || !amount || !purchase_order_id || !purchase_order_name) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields' 
+      });
+    }
+
+    // Validate customer info
+    if (!customer_info || !customer_info.name || !customer_info.email || !customer_info.phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Customer information incomplete'
+      });
+    }
+
+    // Prepare payload
+    const payload = {
+      return_url,
+      website_url,
+      amount,
+      purchase_order_id,
+      purchase_order_name,
+      customer_info
+    };
+
+    if (req.body.amount_breakdown) payload.amount_breakdown = req.body.amount_breakdown;
+    if (req.body.product_details) payload.product_details = req.body.product_details;
+
+    console.log('Initiating Khalti payment with payload:', payload);
+
+    // Use dev URL for test key
+    const khaltiInitiateUrl = 'https://dev.khalti.com/api/v2/epayment/initiate/';
+
+    // Call Khalti API
+    const response = await axios.post(khaltiInitiateUrl, payload, {
+      headers: {
+        'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('Khalti response:', response.data);
+    return res.json(response.data);
+
   } catch (error) {
-      console.error("Khalti API Error:", error.response?.data || error.message);
-      res.status(400).json({ success: false, error: error.response?.data || "Unknown error" });
+    console.error('Khalti API call failed:', error.response?.data || error.message);
+    return res.status(error.response?.status || 500).json({
+      success: false,
+      message: 'Failed to initiate payment',
+      error: error.response?.data || error.message
+    });
   }
 });
+
+// Verify Khalti payment
+app.post('/api/khalti/verify', async (req, res) => {
+  try {
+    const { pidx } = req.body;
+
+    if (!pidx) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment ID (pidx) is required'
+      });
+    }
+
+    console.log('Verifying Khalti payment with pidx:', pidx);
+
+    // Make request to Khalti lookup API
+    const response = await axios.post(
+      'https://dev.khalti.com/api/v2/epayment/lookup/',  // Use prod URL in production
+      { pidx },
+      {
+        headers: {
+          'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log('Khalti verification response:', response.data);
+
+    // Save the order to database if payment is completed
+    if (response.data.status === 'Completed') {
+      // You can add code here to save the order to your database
+      // This would depend on your specific database schema
+      
+      // Example:
+      // await pool.query(
+      //   'INSERT INTO orders (transaction_id, amount, status, created_at) VALUES (?, ?, ?, NOW())',
+      //   [response.data.transaction_id, response.data.total_amount/100, 'Completed']
+      // );
+    }
+
+    // Return verification result to client
+    res.json(response.data);
+  } catch (error) {
+    console.error('Khalti payment verification error:', error.response?.data || error.message);
+    
+    res.status(error.response?.status || 500).json({
+      success: false,
+      message: 'Failed to verify payment',
+      error: error.response?.data || error.message
+    });
+  }
+});
+
+
 
 app.listen(5000, () => {
     console.log('Server started on http://localhost:5000');
