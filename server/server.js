@@ -9,6 +9,9 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const app = express();
 const axios = require('axios');
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 
 const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
@@ -17,7 +20,16 @@ console.log("Khalti Secret Key:", khaltiSecretKey);
 console.log("Khalti Secret Key:", process.env.KHALTI_SECRET_KEY);
 
 
+// Set up upload folder
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname))
+});
 
+
+const upload = multer({ storage });
+app.use('/uploads', express.static('uploads')); // Serve static images
 
 // Database configuration
 const dbConfig = {
@@ -735,8 +747,37 @@ app.post('/api/auth/resend-reset-code', async (req, res) => {
     });
   }
 });
+// adding products
 
+app.post("/api/products", upload.single('image'), async (req, res) => {
+  try {
+    const { name, price, category, description, instock } = req.body;
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
+    if (!name || !price || !category || !description || instock === null) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const [result] = await pool.query(
+      "INSERT INTO products (name, price, category, description, instock, image) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, price, category, description, instock, imagePath]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      name,
+      price,
+      category,
+      description,
+      instock,
+      image: imagePath,
+    });
+  } catch (error) {
+    console.error("Error adding product:", error);
+    console.error(" Backend error (add product):", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 // Get All Products
 app.get("/api/products", async (req, res) => {
@@ -749,54 +790,38 @@ app.get("/api/products", async (req, res) => {
   }
 });
 
-// Add a New Product
-app.post("/api/products", async (req, res) => {
-  try {
-    const { name, price, category, description, instock } = req.body;
 
-    if (!name || !price || !category || !description || instock === null) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const [result] = await pool.query(
-      "INSERT INTO products (name, price, category, description, instock) VALUES (?, ?, ?, ?, ?)",
-      [name, price, category, description, instock]
-    );
-    
-
-    res.status(201).json({ id: result.insertId, name, price, category, description, instock });
-  } catch (error) {
-    console.error("Error adding product:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 // Update Product
-app.put("/api/products/:id", async (req, res) => {
+app.put("/api/products/:id", upload.single("image"), async (req, res) => {
+  const { name, price, category, description, instock, oldImage } = req.body;
+  const { id } = req.params;
+
   try {
-    const { name, price, category, description, instock } = req.body;
-    const { id } = req.params;
+    let imagePath = oldImage;
 
-    if (!name || !price || !category || !description || instock === undefined) {
-      return res.status(400).json({ message: "All fields are required" });
+    // If new image uploaded, update path and delete old file
+    if (req.file) {
+      imagePath = `/uploads/${req.file.filename}`;
+
+      //  Delete old image file if it exists
+      if (oldImage && fs.existsSync(path.join(__dirname, oldImage))) {
+        fs.unlinkSync(path.join(__dirname, oldImage));
+      }
     }
 
-    const [result] = await pool.query(
-      "UPDATE products SET name = ?, price = ?, category = ?, description = ?, instock = ? WHERE id = ?",
-      [name, price, category, description, instock, id]
+    await pool.query(
+      "UPDATE products SET name = ?, price = ?, category = ?, description = ?, instock = ?, image = ? WHERE id = ?",
+      [name, price, category, description, instock, imagePath, id]
     );
-    
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-  res.json({ id, name, price, category, description, instock });
-  } catch (error) {
-    console.error("Error updating product:", error);
+    res.json({ success: true, message: "Product updated" });
+  } catch (err) {
+    console.error("❌ Error updating product:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // Delete Product
 app.delete("/api/products/:id", async (req, res) => {

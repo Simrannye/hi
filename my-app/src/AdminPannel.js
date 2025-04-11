@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaBox, FaClipboardList, FaClock, FaCheckCircle, FaExclamationTriangle, FaMoneyBillWave } from "react-icons/fa";
 import "./AdminPannel.css";
 import AdminNavbar from "./components/AdminNavbar";
 import "./components/AdminNavbar.css";
@@ -52,29 +53,31 @@ const AdminPannel = () => {
   // Add product to database
   const addProduct = async () => {
     try {
-      const productData = {
-        ...form,
-        price: Number(form.price),
-        instock: Number(form.instock),
-      };
-
-      console.log("Sending Product Data:", productData);
-
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("price", form.price);
+      formData.append("category", form.category);
+      formData.append("description", form.description);
+      formData.append("instock", form.instock);
+      if (form.imageFile) {
+        formData.append("image", form.imageFile);
+      }
+  
       const response = await fetch("http://localhost:5000/api/products", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productData),
+        body: formData
       });
-
+  
       if (!response.ok) throw new Error("Failed to add product");
-
+  
       const newProduct = await response.json();
       setProducts([...products, newProduct]);
-      setForm({ id: "", name: "", price: "", category: "", description: "", instock: 0 });
+      setForm({ id: "", name: "", price: "", category: "", description: "", instock: 0, imageFile: null });
     } catch (error) {
       console.error("Error adding product:", error);
     }
   };
+  
 
   // Edit product
   const editProduct = (product) => {
@@ -86,21 +89,32 @@ const AdminPannel = () => {
   // Update product in database
   const updateProduct = async () => {
     try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("price", form.price);
+      formData.append("category", form.category);
+      formData.append("description", form.description);
+      formData.append("instock", form.instock);
+      formData.append("oldImage", form.image); // ✅ send old image path
+      if (form.imageFile) {
+        formData.append("image", form.imageFile);
+      }
+  
       const response = await fetch(`http://localhost:5000/api/products/${form.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: formData
       });
-
+  
       if (!response.ok) throw new Error("Failed to update product");
-
-      fetchProducts(); // Refresh products after update
-      setForm({ id: "", name: "", price: "", category: "", description: "", instock: 0 });
+  
+      await fetchProducts();
+      setForm({ id: "", name: "", price: "", category: "", description: "", instock: 0, image: null, imageFile: null });
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating product:", error);
     }
   };
+  
 
   // Delete product from database
   const deleteProduct = async (id) => {
@@ -159,56 +173,56 @@ const AdminPannel = () => {
     return (
       <div className="dashboard-container">
         <h3 className="admin-subheading">Dashboard Overview</h3>
-        
         <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon products-icon"></div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.totalProducts}</div>
-              <div className="stat-label">Total Products</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon orders-icon"></div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.totalOrders}</div>
-              <div className="stat-label">Total Orders</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon pending-icon"></div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.pendingOrders}</div>
-              <div className="stat-label">Pending Orders</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon completed-icon"></div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.completedOrders}</div>
-              <div className="stat-label">Completed Orders</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon stock-icon"></div>
-            <div className="stat-content">
-              <div className="stat-value">{stats.lowStockProducts}</div>
-              <div className="stat-label">Low Stock Items</div>
-            </div>
-          </div>
-          
-          <div className="stat-card">
-            <div className="stat-icon revenue-icon"></div>
-            <div className="stat-content">
-              <div className="stat-value">NPR {stats.totalRevenue.toLocaleString()}</div>
-              <div className="stat-label">Total Revenue</div>
-            </div>
-          </div>
-        </div>
+  <div className="stat-card">
+    <FaBox className="stat-icon" />
+    <div className="stat-content">
+      <div className="stat-value">{stats.totalProducts}</div>
+      <div className="stat-label">Total Products</div>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <FaClipboardList className="stat-icon" />
+    <div className="stat-content">
+      <div className="stat-value">{stats.totalOrders}</div>
+      <div className="stat-label">Total Orders</div>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <FaClock className="stat-icon" />
+    <div className="stat-content">
+      <div className="stat-value">{stats.pendingOrders}</div>
+      <div className="stat-label">Pending Orders</div>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <FaCheckCircle className="stat-icon" />
+    <div className="stat-content">
+      <div className="stat-value">{stats.completedOrders}</div>
+      <div className="stat-label">Completed Orders</div>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <FaExclamationTriangle className="stat-icon" />
+    <div className="stat-content">
+      <div className="stat-value">{stats.lowStockProducts}</div>
+      <div className="stat-label">Low Stock Items</div>
+    </div>
+  </div>
+
+  <div className="stat-card">
+    <FaMoneyBillWave className="stat-icon" />
+    <div className="stat-content">
+      <div className="stat-value">NPR {stats.totalRevenue.toLocaleString()}</div>
+      <div className="stat-label">Total Revenue</div>
+    </div>
+  </div>
+</div>
+
         
         <div className="dashboard-actions">
           <button className="admin-btn admin-add-btn" onClick={() => setActiveTab("products")}>
@@ -270,6 +284,33 @@ const AdminPannel = () => {
             onChange={handleInputChange} 
           />
 
+<input 
+  type="file" 
+  name="image" 
+  onChange={(e) => setForm({ ...form, imageFile: e.target.files[0] })}
+/>
+
+{/* ✅ Show current image from DB */}
+{form.image && !form.imageFile && (
+  <img
+    src={`http://localhost:5000${form.image}`}
+    alt="Current"
+    width="80"
+    style={{ marginTop: "10px", display: "block" }}
+  />
+)}
+
+{/* ✅ Show preview of new selected image */}
+{form.imageFile && (
+  <img
+    src={URL.createObjectURL(form.imageFile)}
+    alt="Preview"
+    width="80"
+    style={{ marginTop: "10px", display: "block" }}
+  />
+)}
+
+
           {isEditing ? (
             <button className="admin-btn admin-update-btn" onClick={updateProduct}>Update Product</button>
           ) : (
@@ -287,6 +328,7 @@ const AdminPannel = () => {
                 <th>Price</th>
                 <th>Category</th>
                 <th>Description</th>
+                <th>Images</th>
                 <th>Stock</th>
                 <th>Actions</th>
               </tr>
@@ -299,6 +341,14 @@ const AdminPannel = () => {
                   <td>NPR {product.price}</td>
                   <td>{product.category}</td>
                   <td>{product.description}</td>
+                  <td>
+  {product.image ? (
+    <img src={`http://localhost:5000${product.image}`} alt={product.name} width="50" />
+  ) : (
+    "No Image"
+  )}
+</td>
+
                   <td>{product.instock}</td>
                   <td>
                     <button className="admin-btn admin-edit-btn" onClick={() => editProduct(product)}>Edit</button>
@@ -308,10 +358,35 @@ const AdminPannel = () => {
               ))}
             </tbody>
           </table>
+          <h3 className="admin-subheading">Live Product Preview</h3>
+<div className="products-preview-grid">
+  {products.length === 0 ? (
+    <p>No products available.</p>
+  ) : (
+    products.map((product) => (
+      <div className="preview-card" key={product.id}>
+        <img
+          src={`http://localhost:5000${product.image}`}
+          alt={product.name}
+          width="100"
+        />
+        <h4>{product.name}</h4>
+        <p>Price: NPR {product.price}</p>
+        <p>Stock: {product.instock}</p>
+        <p className="badge-category">{product.category}</p>
+        {product.instock < 5 && (
+          <p className="badge-low-stock">Low stock</p>
+        )}
+        <p className="preview-category">{product.category}</p>
+      </div>
+    ))
+  )}
+</div>
         </div>
       </>
     );
   };
+  
 
   // Render orders section
   const renderOrders = () => {
@@ -361,14 +436,20 @@ const AdminPannel = () => {
   };
 
   return (
-    <div className="admin-panel-container">
-      <AdminNavbar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      {activeTab === "dashboard" && renderDashboard()}
-      {activeTab === "products" && renderProducts()}
-      {activeTab === "orders" && renderOrders()}
+    <div className="admin-layout">
+      <AdminNavbar activeTab={activeTab} setActiveTab={setActiveTab} /> {/* outside the panel container */}
+  
+      <main className="content-area">
+        <div className="admin-panel-container">
+          {activeTab === "dashboard" && renderDashboard()}
+          {activeTab === "products" && renderProducts()}
+          {activeTab === "orders" && renderOrders()}
+        </div>
+      </main>
     </div>
   );
+  
+  
+  
 };
-
 export default AdminPannel;

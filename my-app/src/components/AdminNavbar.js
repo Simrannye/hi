@@ -1,34 +1,38 @@
 import React from 'react';
+import { FaBox, FaClipboardList, FaChartBar } from 'react-icons/fa';
 import './AdminNavbar.css';
 
 const AdminNavbar = ({ activeTab, setActiveTab }) => {
   return (
-    <div className="admin-navbar">
+    <aside className="sidebar">
       <div className="admin-logo">
         <span className="logo-text">Admin Dashboard</span>
       </div>
       <nav className="admin-nav">
-        <ul>
+        <ul className="sidebar-menu">
           <li 
             className={activeTab === 'dashboard' ? 'active' : ''} 
             onClick={() => setActiveTab('dashboard')}
           >
-            <i className="nav-icon dashboard-icon"></i>
-            Dashboard
+            <FaChartBar className="nav-icon" /> Dashboard
           </li>
           <li 
             className={activeTab === 'products' ? 'active' : ''} 
             onClick={() => setActiveTab('products')}
           >
-            <i className="nav-icon products-icon"></i>
-            Products
+            <FaBox className="nav-icon" /> Products
           </li>
           <li 
             className={activeTab === 'orders' ? 'active' : ''} 
             onClick={() => setActiveTab('orders')}
           >
-            <i className="nav-icon orders-icon"></i>
-            Orders
+            <FaClipboardList className="nav-icon" /> Orders
+          </li>
+          <li 
+            className={activeTab === 'users' ? 'active' : ''} 
+            onClick={() => setActiveTab('')}
+          >
+            <FaClipboardList className="nav-icon" /> LogOut
           </li>
         </ul>
       </nav>
@@ -36,7 +40,7 @@ const AdminNavbar = ({ activeTab, setActiveTab }) => {
         <div className="user-avatar"></div>
         <span className="user-name">Admin</span>
       </div>
-    </div>
+    </aside>
   );
 };
 
