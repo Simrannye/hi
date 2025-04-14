@@ -29,6 +29,12 @@ const AdminNavbar = ({ activeTab, setActiveTab }) => {
             <FaClipboardList className="nav-icon" /> Orders
           </li>
           <li 
+            className={activeTab === 'contact_messages' ? 'active' : ''} 
+            onClick={() => setActiveTab('contact_messages')}
+          >
+            <FaClipboardList className="nav-icon" /> Messages
+          </li>
+          <li 
             className={activeTab === 'users' ? 'active' : ''} 
             onClick={() => setActiveTab('')}
           >

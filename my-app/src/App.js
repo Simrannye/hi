@@ -19,6 +19,7 @@ import Checkout from "./components/Checkout";
 import AdminPannel from "./AdminPannel";
 import ForgotPassword from './components/ForgotPassword';
 import PaymentSuccess from './components/PaymentSuccess';
+import UserOrders from './components/UserOrders'; 
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;
@@ -80,6 +81,7 @@ function App() {
             <Route path="/Products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/AdminPannel" element={<ProtectedRoute><AdminPannel /></ProtectedRoute>} />
+            <Route path="/orders" element={<ProtectedRoute><UserOrders user={user} /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/userauth" element={<UserAuth />} />
             <Route path="/forgot" element={<ForgotPassword />} />

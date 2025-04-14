@@ -16,7 +16,10 @@ const AdminPannel = () => {
   useEffect(() => {
     fetchProducts();
     fetchOrders();
+    fetchMessages();
+
   }, []);
+  const [messages, setMessages] = useState([]);
 
   const fetchProducts = async () => {
     try {
@@ -34,13 +37,16 @@ const AdminPannel = () => {
     try {
       const response = await fetch("http://localhost:5000/api/orders");
       if (!response.ok) throw new Error("Failed to fetch orders");
+  
       const data = await response.json();
       console.log("Fetched Orders:", data);
-      setOrders(data);
+  
+      setOrders(data.data); // ✅ FIXED
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
   };
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -148,6 +154,53 @@ const AdminPannel = () => {
     }
   };
 
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/messages");
+      if (!response.ok) throw new Error("Failed to fetch messages");
+      const data = await response.json();
+      setMessages(data);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    }
+  };
+
+  const renderMessages = () => {
+    return (
+      <>
+        <h3 className="admin-subheading">Contact Messages</h3>
+        <div className="table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Message</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {messages.map((msg) => (
+                <tr key={msg.id}>
+                  <td>{msg.id}</td>
+                  <td>{msg.name}</td>
+                  <td>{msg.email}</td>
+                  <td>{msg.phone}</td>
+                  <td>{msg.message}</td>
+                  <td>{new Date(msg.created_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
+    );
+  };
+  
+  
   // Dashboard Statistics
   const getDashboardStats = () => {
     const totalProducts = products.length;
@@ -231,6 +284,8 @@ const AdminPannel = () => {
           <button className="admin-btn admin-complete-btn" onClick={() => setActiveTab("orders")}>
             View Orders
           </button>
+          <button className="admin-btn admin-message-btn" onClick={() => setActiveTab("contact_messages")}>View Messages</button>
+
         </div>
       </div>
     );
@@ -444,6 +499,8 @@ const AdminPannel = () => {
           {activeTab === "dashboard" && renderDashboard()}
           {activeTab === "products" && renderProducts()}
           {activeTab === "orders" && renderOrders()}
+          {activeTab === "contact_messages" && renderMessages()} 
+
         </div>
       </main>
     </div>

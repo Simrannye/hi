@@ -72,6 +72,8 @@ const Header = () => {
             <Link to="/about">About</Link>
             <Link to="/products">Products</Link>
             <Link to="/contact">Contact</Link>
+            <Link to="/orders"><i className="fas fa-receipt"></i> My Orders</Link>
+
           </nav>
   
           <form action="/search" className="search-form">
@@ -86,14 +88,14 @@ const Header = () => {
             </Link> */}
   
             {/* Sidebar Toggle Button */}
-            <a href="#sidebar" title="User Profile" onClick={toggleSidebar}>
+            <a href="#sidebarhome" title="User Profile" onClick={toggleSidebar}>
               <i className="fa-solid fa-user"></i>
             </a>
           </div>
         </header>
   
         {/* Sidebar Component */}
-        <div className={`sidebar ${isSidebarOpen ? "active" : ""}`} id="sidebar">
+        <div className={`sidebarhome ${isSidebarOpen ? "active" : ""}`} id="sidebarhome">
         <span className="username">{user ? user.username : "Guest"}</span> 
           <div className="profile-wrapper">
             <div className="profile-container">

@@ -913,13 +913,53 @@ app.delete('/api/cart/clear', isAuthenticated, async (req, res) => {
 // Get all orders
 app.get("/api/orders", async (req, res) => {
   try {
-    const [orders] = await pool.query("SELECT * FROM orders ORDER BY created_at DESC");
-    res.json(orders);
+    const { customer, page = 1, limit = 10, start, end } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    let query = "SELECT * FROM orders WHERE 1=1";
+    let countQuery = "SELECT COUNT(*) as total FROM orders WHERE 1=1";
+    const params = [];
+    const countParams = [];
+
+    if (customer) {
+      query += " AND customer = ?";
+      countQuery += " AND customer = ?";
+      params.push(customer);
+      countParams.push(customer);
+    }
+
+    if (start) {
+      query += " AND created_at >= ?";
+      countQuery += " AND created_at >= ?";
+      params.push(start);
+      countParams.push(start);
+    }
+
+    if (end) {
+      query += " AND created_at <= ?";
+      countQuery += " AND created_at <= ?";
+      params.push(end);
+      countParams.push(end);
+    }
+
+    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+    params.push(parseInt(limit), offset);
+
+    const [orders] = await pool.query(query, params);
+    const [[countResult]] = await pool.query(countQuery, countParams);
+
+    res.json({
+      data: orders,
+      total: countResult.total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    console.error("Error fetching filtered orders:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // Add a new order
 app.post('/api/orders', async (req, res) => {
@@ -1131,6 +1171,38 @@ app.post('/api/khalti/verify', async (req, res) => {
       message: 'Failed to verify payment',
       error: error.response?.data || error.message
     });
+  }
+});
+
+
+
+app.post('/api/contact', async (req, res) => {
+  const { name, email, phone, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ success: false, message: 'Required fields missing' });
+  }
+
+  try {
+    await pool.query(
+      'INSERT INTO contact_messages (name, email, phone, message) VALUES (?, ?, ?, ?)',
+      [name, email, phone, message]
+    );
+
+    res.json({ success: true, message: 'Message submitted successfully' });
+  } catch (error) {
+    console.error('Error saving contact message:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+app.get("/api/messages", async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM contact_messages ORDER BY created_at DESC");
+    res.json(rows);
+  } catch (error) {
+    console.error("Error fetching contact messages:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

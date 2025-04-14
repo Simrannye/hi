@@ -77,7 +77,7 @@ section{
 
 
 /* Sidebar styles */
-.sidebar {
+.sidebarhome {
   position: fixed;
   top: 0;
   right: -280px; /* Initially hidden */
@@ -90,11 +90,11 @@ section{
   box-shadow: -3px 0 8px rgba(0, 0, 0, 0.3);
 }
 
-.sidebar.active {
+.sidebarhome.active {
   right: 0; /* Show sidebar */
 }
 
-.sidebar h4 {
+.sidebarhome h4 {
   color: #ffffff;
   text-align: center;
   font-size: 18px;
@@ -102,17 +102,17 @@ section{
   margin-bottom: 20px;
 }
 
-.sidebar ul {
+.sidebarhome ul {
   list-style-type: none;
   padding: 0;
   padding-top: 30px;
 }
 
-.sidebar ul li {
+.sidebarhome ul li {
   margin-bottom: 12px;
 }
 
-.sidebar ul li a {
+.sidebarhome ul li a {
   display: block;
   color: #f1f1f1;
   padding: 12px;
@@ -123,7 +123,7 @@ section{
   transition: background-color 0.3s ease-in-out;
 }
 
-.sidebar ul li a:hover {
+.sidebarhome ul li a:hover {
   background-color: #444;
   color: #28a745; /* Green highlight */
 }
@@ -165,10 +165,10 @@ section{
 
 /* Responsive Adjustments */
 @media screen and (max-width: 600px) {
-  .sidebar {
+  .sidebarhome {
     width: 240px; /* Smaller sidebar on mobile */
   }
-  .sidebar ul li a {
+  .sidebarhome ul li a {
     font-size: 14px;
     padding: 10px;
   }
@@ -683,6 +683,123 @@ section{
 .footer .credit span{
   color:var(--pink);
 }
+
+.contact {
+  padding: 60px 20px;
+  background: #f6f9f4;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.heading {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #2e7d32;
+  margin-bottom: 40px;
+}
+
+.heading span {
+  color: #66bb6a;
+}
+
+.contact-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.contact-image img {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.contact-form {
+  flex: 1;
+  min-width: 300px;
+}
+
+.contact-form form {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.success-message button {
+  margin-top: 12px;
+  padding: 10px 20px;
+  border: none;
+  background-color: #66bb6a;
+  color: white;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+
+
+.box:focus {
+  border-color: #81c784;
+  outline: none;
+}
+
+.box {
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  font-size: 1.1rem;      /* ✅ Increases font size inside textarea/input */
+  line-height: 1.6;
+  color: #333;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+textarea.box {
+  min-height: 140px;      /* ✅ Taller area for more content */
+  resize: vertical;
+  font-size: 1.1rem;
+}
+
+textarea.box::placeholder,
+.box::placeholder {
+  font-size: 1.05rem;      /* ✅ Make placeholder text match the input size */
+  color: #888;
+}
+
+
+
+.messagebtn {
+  background: #66bb6a;
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.messagebtn:hover {
+  background: #4caf50;
+}
+
+.success-message {
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
 
 /* media queries  */
 @media (max-width:991px){
