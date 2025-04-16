@@ -1,6 +1,6 @@
 import "../App.css";
 import Header from "./Header";
-import contactImg from "../fruit.jpg";
+import contactImg from "./contact.avif";
 import React, { useState } from 'react';
 import axios from 'axios';
 
@@ -38,13 +38,14 @@ const Contact = () => {
     <>
       <Header />
       <section className="contact">
-        <h1 className="heading">Contact <span>Us</span></h1>
         <div className="contact-container">
           <div className="contact-image">
             <img src={contactImg} alt="Contact Us" />
           </div>
 
           <div className="contact-form">
+          <h1 className="contact-heading">Contact Us</h1>
+
             {submitted ? (
                 <div className="success-message">
                 <p>Message sent successfully!</p>

@@ -214,44 +214,49 @@ function UserAuth() {
         e.preventDefault();
         setIsLoading(true);
         setLoginError('');
-        
+      
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(loginData),
-                credentials: 'include'
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                // Check if verification is required
-                if (response.status === 403 && data.requiresVerification) {
-                    // Set verification data and switch to verification step
-                    setVerificationData({
-                        userId: data.userId,
-                        verificationCode: '',
-                        email: loginData.email
-                    });
-                    setVerificationStep(true);
-                    setIsActive(true);
-                    throw new Error('Please verify your email before logging in');
-                }
-                
-                throw new Error(data.message || 'Login failed');
+          const response = await fetch('http://localhost:5000/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginData),
+            credentials: 'include'
+          });
+      
+          const data = await response.json();
+      
+          if (!response.ok) {
+            // Check if verification is required
+            if (response.status === 403 && data.requiresVerification) {
+              setVerificationData({
+                userId: data.userId,
+                verificationCode: '',
+                email: loginData.email
+              });
+              setVerificationStep(true);
+              setIsActive(true);
+              throw new Error('Please verify your email before logging in');
             }
-            
-            // Login successful, redirect to homepage
+      
+            throw new Error(data.message || 'Login failed');
+          }
+      
+          // ✅ Redirect based on role
+          if (data.user.role === 'admin') {
+            navigate('/AdminPannel');
+          } else {
             navigate('/');
+          }
+      
         } catch (error) {
-            setLoginError(error.message);
+          setLoginError(error.message);
         } finally {
-            setIsLoading(false);
+          setIsLoading(false);
         }
-    };
+      };
+      
 
     return (
         <div id="user-auth-container">

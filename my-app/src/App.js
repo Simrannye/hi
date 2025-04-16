@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-
-
-
-
 import Cart from "./components/Cart";
 import Contact from "./components/Contact";
 import Offers from "./components/Offers";
@@ -20,6 +16,7 @@ import AdminPannel from "./AdminPannel";
 import ForgotPassword from './components/ForgotPassword';
 import PaymentSuccess from './components/PaymentSuccess';
 import UserOrders from './components/UserOrders'; 
+import AdminRoute from './components/AdminRoute';
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;
@@ -66,6 +63,10 @@ function App() {
     }
   }, [user]);
 
+  const AdminPannelWrapper = () => <AdminPannel setUser={setUser} />;
+
+  
+
   return (
     <Router>
       <div className="App">
@@ -80,8 +81,15 @@ function App() {
             <Route path="/UserSetting" element={<ProtectedRoute><UserSetting /></ProtectedRoute>} />
             <Route path="/Products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-            <Route path="/AdminPannel" element={<ProtectedRoute><AdminPannel /></ProtectedRoute>} />
+            {/* <Route path="/AdminPannel" element={<ProtectedRoute><AdminPannel /></ProtectedRoute>} /> */}
             <Route path="/orders" element={<ProtectedRoute><UserOrders user={user} /></ProtectedRoute>} />
+            <Route 
+              path="/AdminPannel" 
+              element={
+              <AdminRoute>
+              <AdminPannelWrapper setUser={setUser} />
+              </AdminRoute>}
+            />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/userauth" element={<UserAuth />} />
             <Route path="/forgot" element={<ForgotPassword />} />

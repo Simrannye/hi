@@ -130,6 +130,7 @@
     font-weight: 600;
     text-decoration: none;
     transition: color 0.3s ease;
+    font-size: 1.2rem;
   }
   
   .category-card a:hover {
@@ -277,14 +278,14 @@
   }
   
   .feature h3 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     margin-bottom: 1rem;
     color: #333;
   }
   
   .feature p {
     color: #666;
-    font-size: 1rem;
+    font-size: 1.1rem;
     line-height: 1.6;
   }
   
@@ -344,6 +345,7 @@
     line-height: 1.7;
     position: relative;
     z-index: 1;
+    font-size: 1.2rem;
   }
   
   .customer-info {
@@ -369,6 +371,7 @@
     font-weight: 600;
     color: #333;
     margin-right: 1rem;
+    font-size: 1.2rem;
   }
   
   .rating {
@@ -440,14 +443,14 @@
   }
   
   .step h3 {
-    font-size: 1.3rem;
+    font-size: 1.6rem;
     margin-bottom: 1rem;
     color: #333;
   }
   
   .step p {
     color: #666;
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
   
   /* App Banner Section */

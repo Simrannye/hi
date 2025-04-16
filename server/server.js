@@ -101,7 +101,8 @@ app.get('/api/auth/status', (req, res) => {
       user: { 
         id: req.session.user.id, 
         username: req.session.user.username, 
-        email: req.session.user.email 
+        email: req.session.user.email,
+        role: req.session.user.role
       } 
     });
   } else {
@@ -417,7 +418,8 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.user = {
       id: user.id,
       username: user.username,
-      email: user.email
+      email: user.email,
+      role: user.role
     };
     
     res.json({
@@ -426,7 +428,8 @@ app.post('/api/auth/login', async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        role: user.role
       }
     });
   } catch (error) {
@@ -747,6 +750,36 @@ app.post('/api/auth/resend-reset-code', async (req, res) => {
     });
   }
 });
+
+
+//UPDATING PROFILE
+app.put('/api/auth/update-profile', async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const userId = req.session.user.id;
+    const { username, email, phone, address } = req.body;
+
+    await pool.query(
+      "UPDATE users SET username = ?, email = ?, phone = ?, address = ? WHERE id = ?",
+      [username, email, phone || '', address || '', userId]
+    );
+
+    // Update session info
+    req.session.user.username = username;
+    req.session.user.email = email;
+
+    res.json({ success: true, message: "Profile updated" });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+
 // adding products
 
 app.post("/api/products", upload.single('image'), async (req, res) => {

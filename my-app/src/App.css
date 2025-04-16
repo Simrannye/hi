@@ -602,6 +602,8 @@ section{
 
 /* Image Styling */
 .contact-image img {
+  max-width: 420px;
+
   width: 400px; /* Adjust based on your preference */
   height: auto;
   border-radius: 10px;
@@ -685,9 +687,11 @@ section{
 }
 
 .contact {
-  padding: 60px 20px;
+  padding:23px 8px;
   background: #f6f9f4;
   font-family: 'Segoe UI', sans-serif;
+  margin-top: 131px;
+
 }
 
 .heading {
@@ -716,7 +720,8 @@ section{
 
 .contact-image img {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+
   border-radius: 12px;
   object-fit: cover;
 }

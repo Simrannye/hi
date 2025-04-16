@@ -2,6 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import "./Home.css";
 import Header from "./Header";
+import fruit from "./choosefruit.avif";
+import veggie from "./veggie.jpeg";
+import dairy from "./dairy.jpg";
+import bakery from "./bakery.jpg";
+import review from "./review.jpeg";
 
 const Home = () => {
   return (
@@ -23,29 +28,29 @@ const Home = () => {
         <h2>Shop By Category</h2>
         <div className="category-container">
           <div className="category-card">
-            <img src="/images/fruits.jpg" alt="Fresh Fruits" />
+            <img src= {fruit} alt="Fresh Fruits" />
             <h3>Fruits</h3>
             <Link to="/Products">Browse Fruits</Link>
           </div>
           <div className="category-card">
-            <img src="/images/vegetables.jpg" alt="Fresh Vegetables" />
+            <img src={veggie} alt="Fresh Vegetables" />
             <h3>Vegetables</h3>
             <Link to="/Products">Browse Vegetables</Link>
           </div>
           <div className="category-card">
-            <img src="/images/dairy.jpg" alt="Dairy Products" />
+            <img src={dairy} alt="Dairy Products" />
             <h3>Dairy</h3>
             <Link to="/Products">Browse Dairy</Link>
           </div>
           <div className="category-card">
-            <img src="/images/bakery.jpg" alt="Bakery Items" />
+            <img src={bakery} alt="Bakery Items" />
             <h3>Bakery</h3>
             <Link to="/Products">Browse Bakery</Link>
           </div>
         </div>
       </section>
 
-      {/* Special Offers Section */}
+      {/* Special Offers Section
       <section className="special-offers">
         <h2>Special Offers</h2>
         <div className="offers-container">
@@ -64,7 +69,7 @@ const Home = () => {
             <Link to="/offers" className="offer-btn">View Offer</Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Why Choose Us Section */}
       <section className="why-choose-us">
@@ -124,7 +129,7 @@ const Home = () => {
             <p>The freshest vegetables I've ever had from a delivery service. Their same-day delivery is a lifesaver!</p>
             <div className="customer-info">
               <div className="customer-avatar">
-                <img src="/images/customer1.jpg" alt="Sarah M." />
+                <img src={review} alt="Sarah M." />
               </div>
               <div className="customer-name">Sarah M.</div>
               <div className="rating">★★★★★</div>
@@ -135,42 +140,13 @@ const Home = () => {
             <p>Great prices and exceptional quality. I love that they source from local farmers. Will definitely continue ordering!</p>
             <div className="customer-info">
               <div className="customer-avatar">
-                <img src="/images/customer2.jpg" alt="Raj P." />
+                <img src={review} alt="Raj P." />
               </div>
               <div className="customer-name">Raj P.</div>
               <div className="rating">★★★★★</div>
             </div>
           </div>
         </div>
-      </section>
-
-      {/* App Banner Section */}
-      <section className="app-banner">
-        <div className="app-content">
-          <h2>Shop On The Go</h2>
-          <p>Download our mobile app for a seamless grocery shopping experience.</p>
-          <div className="app-buttons">
-            <a href="#" className="app-btn">
-              <img src="/images/app-store.png" alt="Download on App Store" />
-            </a>
-            <a href="#" className="app-btn">
-              <img src="/images/play-store.png" alt="Get it on Google Play" />
-            </a>
-          </div>
-        </div>
-        <div className="app-image">
-          <img src="/images/mobile-app.png" alt="GrabNGo Mobile App" />
-        </div>
-      </section>
-
-      {/* Newsletter Section */}
-      <section className="newsletter">
-        <h2>Stay Updated</h2>
-        <p>Subscribe to our newsletter and get the latest offers directly to your inbox.</p>
-        <form className="newsletter-form">
-          <input type="email" placeholder="Your email address" required />
-          <button type="submit">Subscribe</button>
-        </form>
       </section>
     </>
   );

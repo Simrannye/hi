@@ -1,13 +1,48 @@
-import React, { useState } from "react";
-import "./UserSetting.css"; 
-import profilePlaceholder from "./profile.jpg"; 
+import React, { useEffect, useState } from "react";
+import "./UserSetting.css";
 import Header from "./Header";
+import axios from "axios";
 
 const UserSetting = () => {
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [profilePic, setProfilePic] = useState(profilePlaceholder);
+  const [userData, setUserData] = useState({
+    username: "",
+    email: "",
+    phone: "",
+    address: ""
+  });
 
- 
+  const [profilePic, setProfilePic] = useState(null);
+  const [message, setMessage] = useState("");
+  
+
+  // Fetch user on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/auth/status", {
+          withCredentials: true
+        });
+  
+        if (res.data.authenticated) {
+          // ✅ Destructure all fields from backend response
+          const { username, email, phone, address } = res.data.user;
+  
+          // ✅ Update all fields in state
+          setUserData({ username, email, phone, address });
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+  
+    fetchUser();
+  }, []);
+  
+
+  const handleChange = (e) => {
+    setUserData({ ...userData, [e.target.name]: e.target.value });
+  };
+
   const handleProfilePictureChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -15,54 +50,112 @@ const UserSetting = () => {
     }
   };
 
+  const getInitials = (name) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .map((word) => word[0].toUpperCase())
+      .join("")
+      .slice(0, 2);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await axios.put(
+        "http://localhost:5000/api/auth/update-profile",
+        userData,
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        setMessage("Profile updated successfully!");
+      } else {
+        setMessage("Update failed.");
+      }
+    } catch (error) {
+      console.error("Update error:", error);
+      setMessage("Server error.");
+    }
+  };
+
   return (
     <>
-     <Header />
-    <div className="settings-container">
-   
+      <Header />
+      <div className="settings-container">
+        <section className="settings">
+          <h1>Profile Settings</h1>
+          {message && <div className="alert-msg">{message}</div>}
 
-      {/* Profile Settings Section */}
-      <section className="settings">
-        <h1>Profile Settings</h1>
-        <form action="/update-profile" method="POST">
-          {/* Profile Picture Upload */}
-          
-          <img src={profilePic} alt="Profile" id="existingProfilePic" className="profile-image" />
-          <br />
-          <label htmlFor="profilePicture" className="custom-file-upload">
-            Choose New Picture
-          </label>
-          <input type="file" id="profilePicture" name="profilePicture" accept="image/*" onChange={handleProfilePictureChange} />
+          <form onSubmit={handleSubmit}>
+            {/* Profile image or initials */}
+            {profilePic ? (
+              <img src={profilePic} alt="Profile" className="profile-image" />
+            ) : (
+              <div className="initials-avatar">
+                {getInitials(userData.username)}
+              </div>
+            )}
 
-          {/* Name Input */}
-          <label htmlFor="name">Name:</label>
-          <input type="text" id="name" name="name" placeholder="Enter your name" required />
+            {/* Upload input
+            <label htmlFor="profilePicture" className="custom-file-upload">
+              Choose New Picture
+            </label>
+            <input
+              type="file"
+              id="profilePicture"
+              accept="image/*"
+              onChange={handleProfilePictureChange}
+            /> */}
 
-          {/* Email Input */}
-          <label htmlFor="email">Email:</label>
-          <input type="email" id="email" name="email" placeholder="Enter your email" required />
+            {/* Username */}
+            <label htmlFor="username">Username:</label>
+            <input
+              type="text"
+              name="username"
+              id="username"
+              value={userData.username}
+              onChange={handleChange}
+              required
+            />
 
-          {/* Phone Input */}
-          <label htmlFor="phone">Phone Number:</label>
-          <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" />
+            {/* Email */}
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              value={userData.email}
+              onChange={handleChange}
+              required
+            />
 
-          {/* Address Input */}
-          <label htmlFor="address">Address:</label>
-          <textarea id="address" name="address" placeholder="Enter your address"></textarea>
+            {/* Phone */}
+            <label htmlFor="phone">Phone Number:</label>
+            <input
+              type="tel"
+              name="phone"
+              id="phone"
+              value={userData.phone}
+              onChange={handleChange}
+            />
 
+            {/* Address */}
+            <label htmlFor="address">Address:</label>
+            <textarea
+              name="address"
+              id="address"
+              value={userData.address}
+              onChange={handleChange}
+            ></textarea>
 
-
-          {/* Update Profile Button */}
-          <button type="submit" class="submit">Update Profile</button>
-        </form>
-      </section>
-
-      {/* Footer */}
-      {/* <footer>
-        <p>&copy; 2024 GrabnGo - All rights reserved</p>
-      </footer> */}
-    </div></>
-   
+            {/* Submit */}
+            <button type="submit" className="submit">Update Profile</button>
+          </form>
+        </section>
+      </div>
+    </>
   );
 };
 

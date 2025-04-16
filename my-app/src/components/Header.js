@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 
+
 const Header = () => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +63,17 @@ const Header = () => {
           console.error('Logout error:', error);
       }
   };
+
+  const getInitials = (name) => {
+    if (!name) return "";
+    return name
+      .split(" ")
+      .map((n) => n[0].toUpperCase())
+      .join("")
+      .slice(0, 2);
+  };
+
+  
     return (
       <>
         <header className="App-header">
@@ -69,10 +81,10 @@ const Header = () => {
   
           <nav className="navbar">
             <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
+            {/* <Link to="/about">About</Link> */}
             <Link to="/products">Products</Link>
             <Link to="/contact">Contact</Link>
-            <Link to="/orders"><i className="fas fa-receipt"></i> My Orders</Link>
+            <Link to="/orders">Orders History</Link>
 
           </nav>
   
@@ -80,7 +92,6 @@ const Header = () => {
             <input type="text" placeholder="Search.." name="search" />
             <button type="searchsubmit">&#10162;</button>
           </form>
-  
           <div className="icons">
             {/* <Link to="/cart" title="Cart">
               <i className="fa-solid fa-cart-shopping"></i>
@@ -97,11 +108,16 @@ const Header = () => {
         {/* Sidebar Component */}
         <div className={`sidebarhome ${isSidebarOpen ? "active" : ""}`} id="sidebarhome">
         <span className="username">{user ? user.username : "Guest"}</span> 
-          <div className="profile-wrapper">
-            <div className="profile-container">
-            <img src={prologo} className="prologo" alt="pro Logo" />
-            </div>
-          </div>
+        <div className="profile-wrapper">
+  {user && user.username ? (
+    <div className="initials-avatar">
+      {getInitials(user.username)}
+    </div>
+  ) : (
+    <div className="initials-avatar">G</div>  
+  )}
+</div>
+
           <ul>
             <li><Link to="/UserSetting">Settings</Link></li>
             <li><a href="#" onClick={toggleSidebar}>Back</a></li>

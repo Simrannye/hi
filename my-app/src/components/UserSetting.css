@@ -1,213 +1,136 @@
-/* General Styles */
-
-
-/* Back Button */
-.back-btn {
-    margin-left: 30px;
-    margin-top: 10px;
-    display: inline-block;
-    color: white;
-    background-color: #004d40;
-    padding: 10px 20px;
-    border-radius: 25px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.back-btn:hover {
-    background-color: #00332d;
-    transform: scale(1.05);
-}
-
-
-h1{
-    text-align: center;
-    font-size: 3rem;
-    color: #333;
-    padding: 13px;
-    margin: 3rem 0;
-    background: rgba(250, 249, 249, 0.05);
-    margin: 14px;
-}
-
-/* Settings Section */
-.settings {
-    max-width: 700px;
-    margin: 40px auto;
-    padding: 30px;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s ease;
-    margin-top: 95px;
-}
-
-.settings:hover {
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
-
-
-/* Form Styles */
-form {
-    margin-bottom: 30px;
-}
-
-/* Form Input Styles */
-label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 600;
-    color: #333;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="password"],
-textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 20px;
+/* Base Reset */
+* {
     box-sizing: border-box;
-    font-size: 16px;
-    transition: border 0.3s ease;
-}
-
-input:focus,
-textarea:focus {
-    border-color: #00796b;
-    outline: none;
-}
-
-/* Primary Button (Used for Login & Signup) */
-.btn-primary {
-    background-color: #00796b;
-    color: white;
-    border: none;
-    padding: 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    width: 100%;
-    transition: all 0.3s ease;
-    margin-top: 20px;
-}
-
-.btn-primary:hover {
-    background-color: #004d40;
-    transform: scale(1.05);
-}
-
-/* Secondary Buttons (Show Password, Back) */
-.btn-secondary {
-    background-color: #004d40;
-    color: white;
-    border: none;
-    padding: 12px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.btn-secondary:hover {
-    background-color: #00332d;
-    transform: scale(1.05);
-}
-
-/* Password Section */
-.password-section {
-    margin-top: 30px;
-    display: flex;
-    align-items: center;
-}
-
-#showPasswordForm {
-    padding: 12px 14px;
-    background-color: #00796b;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-right: 12px;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-}
-
-#showPasswordForm:hover {
-    background-color: #004d40;
-    transform: scale(1.05);
-}
-
-#passwordForm {
-    display: none;
-}
-
-#passwordForm input {
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    width: 100%;
-    font-size: 16px;
-    margin-top: 10px;
-}
-
-#passwordForm button {
-    margin-top: 20px;
-}
-
-/* Profile Picture Section */
-.profile-image {
-    width: 120px; 
-    height: 120px;
-    border-radius: 50%; 
-    object-fit: cover; 
-    border: 3px solid #ff7f50; 
-    display: block;
-    margin: 10px auto; 
+    margin: 0;
+    padding: 0;
   }
   
-  /* Custom File Upload Button */
-  .custom-file-upload {
-    display: inline-block;
-    padding: 8px 15px;
-    background-color: #ff7f50;
-    color: white;
-    font-size: 14px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
+  body {
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+  }
+  
+  /* Settings Container */
+  .settings-container {
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 20px;
+  }
+  
+  /* Card Style for Form */
+  .settings {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  }
+  
+  /* Heading */
+  .settings h1 {
+    font-size: 2rem;
+    color: #222;
+    margin-bottom: 25px;
     text-align: center;
-    margin-top: 10px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  /* Labels and Inputs */
+  label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    color: #444;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    transition: all 0.2s ease;
+  }
+  
+  input:focus,
+  textarea:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  /* Submit Button */
+  .submit {
+    background-color: #007bff;
+    color: white;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submit:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Profile Image */
+  .profile-image,
+  .initials-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 10px auto;
+    display: block;
+  }
+  
+  /* Initials Avatar */
+  .initials-avatar {
+    background-color: #6c757d;
+    color: #fff;
+    font-size: 36px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+  }
+  
+  /* File Upload */
+  .custom-file-upload {
+    display: block;
+    width: max-content;
+    margin: 10px auto 20px auto;
+    padding: 10px 20px;
+    background-color: #17a2b8;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
   }
   
   .custom-file-upload:hover {
-    background-color: #ff5722;
+    background-color: #138496;
   }
   
   #profilePicture {
     display: none;
   }
-
-  .submit{
-    display: inline-block;
-    padding: 8px 15px;
-    background-color: #ff7f50;
-    color: white;
-    font-size: 14px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: 0.3s;
+  
+  /* Alert Message */
+  .alert-msg {
+    color: #28a745;
+    font-weight: 600;
     text-align: center;
-    margin-top: 10px;
+    margin-bottom: 20px;
   }
-
-  .submit:hover {
-    background-color: #ff5722;
-  }
-
   

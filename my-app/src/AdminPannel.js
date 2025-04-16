@@ -5,7 +5,8 @@ import AdminNavbar from "./components/AdminNavbar";
 import "./components/AdminNavbar.css";
 
 
-const AdminPannel = () => {
+const AdminPannel = ({ setUser }) => {
+
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [form, setForm] = useState({ id: "", name: "", price: "", category: "", description: "", instock: 0 });
@@ -20,6 +21,8 @@ const AdminPannel = () => {
 
   }, []);
   const [messages, setMessages] = useState([]);
+
+
 
   const fetchProducts = async () => {
     try {
@@ -492,21 +495,22 @@ const AdminPannel = () => {
 
   return (
     <div className="admin-layout">
-      <AdminNavbar activeTab={activeTab} setActiveTab={setActiveTab} /> {/* outside the panel container */}
+      <AdminNavbar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        setUser={setUser} 
+      />
   
       <main className="content-area">
         <div className="admin-panel-container">
           {activeTab === "dashboard" && renderDashboard()}
           {activeTab === "products" && renderProducts()}
           {activeTab === "orders" && renderOrders()}
-          {activeTab === "contact_messages" && renderMessages()} 
-
+          {activeTab === "contact_messages" && renderMessages()}
         </div>
       </main>
     </div>
-  );
-  
-  
+  );  
   
 };
 export default AdminPannel;

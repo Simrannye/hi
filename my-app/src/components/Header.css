@@ -182,7 +182,24 @@ header.scrolled {
   border-bottom: 3px solid rgba(143, 188, 143, 0.6); /* Darker green border when scrolled */
 }
 
-/* Responsive Design */
+
+.initials-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 32px;
+  margin: 10px auto;
+}
+
+
+/* Responsive
+ Design */
 @media (max-width: 768px) {
   header .navbar {
       display: none;
