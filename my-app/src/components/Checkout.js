@@ -14,7 +14,7 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [showFallback, setShowFallback] = useState(false);
-  const [username, setUsername] = useState('Guest'); // 👈 Add here
+  const [user, setUser] = useState({ username: 'Guest', email: '', phone: '' });
 
 useEffect(() => {
   const fetchUser = async () => {
@@ -23,7 +23,11 @@ useEffect(() => {
         withCredentials: true,
       });
       if (res.data.authenticated) {
-        setUsername(res.data.user.username); // ✅ Set username
+        setUser({
+          username: res.data.user.username,
+          email: res.data.user.email,
+          phone: res.data.user.phone || '9800000000' // fallback
+        });
       }
     } catch (err) {
       console.warn('User not logged in');
@@ -32,6 +36,7 @@ useEffect(() => {
 
   fetchUser();
 }, []);
+
 
   
   // Get cart items from location state
@@ -62,7 +67,7 @@ useEffect(() => {
       const productDetails = cart.map(item => ({
         identity: `PROD-${item.id}`,
         name: item.name,
-        total_price: Math.floor(item.price * item.quantity * 100), // Convert to paisa
+        total_price: Math.floor(item.price * item.quantity), // Convert to paisa
         quantity: item.quantity,
         unit_price: Math.floor(item.price * 100) // Convert to paisa
       }));
@@ -97,10 +102,11 @@ useEffect(() => {
         purchase_order_id: generateOrderId(),
         purchase_order_name: "GrabNGo Order",
         customer_info: {
-          name: "Customer", // In a real app, get this from user profile
-          email: "customer@example.com", // In a real app, get this from user profile
-          phone: "9800000000" // In a real app, get this from user profile
-        },
+          name: user.username,
+          email: user.email,
+          phone: user.phone
+        }
+        ,
         amount_breakdown: amountBreakdown,
         product_details: productDetails
       };
@@ -131,7 +137,7 @@ useEffect(() => {
       const handleCOD = async () => {
         try {
           const orderDetails = {
-            customer: username, // Replace with actual username if available
+            customer: user.username,
             items: cart,
             totalAmount,
             paymentMethod: 'COD',

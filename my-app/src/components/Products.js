@@ -14,6 +14,8 @@ const Products = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null); // product to show in popup
+  const [showModal, setShowModal] = useState(false);  
 
   const navigate = useNavigate();
 
@@ -245,11 +247,15 @@ const Products = () => {
                 key={product.id} 
                 className={`product-card ${!product.inStock ? 'out-of-stock' : ''}`}
               >
-                {product.image ? (
-                  <img src={product.image} alt={product.name} className="product-image" />
-                ) : (
-                  <div className="no-image">No Image Available</div>
-                )}
+                <img
+  src={product.image}
+  alt={product.name}
+  className="product-image clickable"
+  onClick={() => {
+    setSelectedProduct(product);
+    setShowModal(true);
+  }}
+/>
                 <h3 className="product-name">{product.name}</h3>
                 <p className="product-price">NPR {Number(product.price).toFixed(2)}</p>
                 <p className="product-description">{product.description}</p>
@@ -356,6 +362,96 @@ const Products = () => {
           {notification}
         </div>
       )}
+      {showModal && selectedProduct && (
+  <div className="product-modal-overlay" onClick={() => setShowModal(false)}>
+    <div
+      className="product-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+      <img src={selectedProduct.image} alt={selectedProduct.name} className="modal-image" />
+      <h2>{selectedProduct.name}</h2>
+      <p>{selectedProduct.description}</p>
+      <p><strong>NPR {Number(selectedProduct.price).toFixed(2)}</strong></p>
+      <p>Stock: {selectedProduct.instock}</p>
+
+      {/* Quantity Control */}
+      <div className="quantity-controls">
+        <button
+          className="quantity-btn decrease"
+          onClick={() =>
+            setSelectedProduct(prev => ({
+              ...prev,
+              quantity: Math.max((prev.quantity || 0) - 1, 0)
+            }))
+          }
+        >
+          –
+        </button>
+        <span className="quantity">{selectedProduct.quantity || 0}</span>
+        <button
+          className="quantity-btn increase"
+          onClick={() =>
+            setSelectedProduct(prev =>
+              (prev.quantity || 0) < prev.instock
+                ? { ...prev, quantity: (prev.quantity || 0) + 1 }
+                : prev
+            )
+          }
+        >
+          +
+        </button>
+      </div>
+
+      {/* Add to Cart */}
+      <button
+        className="add-to-cart-btn"
+        onClick={async () => {
+          if ((selectedProduct.quantity || 0) === 0) return;
+
+          try {
+            await axios.post('http://localhost:5000/api/cart', {
+              product_id: selectedProduct.id,
+              quantity: selectedProduct.quantity
+            }, {
+              withCredentials: true
+            });
+
+            // Update cart locally
+            setCart(prevCart => {
+              const existingIndex = prevCart.findIndex(item => item.id === selectedProduct.id);
+              if (existingIndex >= 0) {
+                const updated = [...prevCart];
+                updated[existingIndex].quantity += selectedProduct.quantity;
+                return updated;
+              } else {
+                return [
+                  ...prevCart,
+                  {
+                    id: selectedProduct.id,
+                    name: selectedProduct.name,
+                    price: selectedProduct.price,
+                    quantity: selectedProduct.quantity
+                  }
+                ];
+              }
+            });
+
+            showNotification(`Added ${selectedProduct.name} to cart!`);
+            setShowModal(false);
+          } catch (err) {
+            console.error("Error adding to cart:", err);
+            showNotification("Failed to add to cart");
+          }
+        }}
+        disabled={(selectedProduct.quantity || 0) === 0}
+      >
+        Add to Cart
+      </button>
+    </div>
+  </div>
+)}
+
     </>
   );
 };
