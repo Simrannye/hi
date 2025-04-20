@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route , Navigate} from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Contact from "./components/Contact";
 import Offers from "./components/Offers";
@@ -17,12 +17,13 @@ import PaymentSuccess from './components/PaymentSuccess';
 import UserOrders from './components/UserOrders'; 
 import AdminRoute from './components/AdminRoute';
 import RiderLogin from "./rider/RiderLogin";
-
+import RiderPanel from "./rider/RiderPanel";
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
+  const [riderId, setRiderId] = useState(null);
 
   // 1. Check if user is logged in
   useEffect(() => {
@@ -63,6 +64,14 @@ function App() {
     }
   }, [user]);
 
+
+  useEffect(() => {
+    const savedRiderId = localStorage.getItem("riderId");
+    if (savedRiderId) {
+      setRiderId(savedRiderId);
+    }
+  }, []);
+
   const AdminPannelWrapper = () => <AdminPannel setUser={setUser} />;
 
   
@@ -94,8 +103,10 @@ function App() {
             <Route path="/forgot" element={<ForgotPassword />} />
             {/* {process.env.NODE_ENV === 'development' && (
            <Route path="/khalti-test" element={<KhaltiTestComponent />} />)} */}
-           <Route path="/rider" element={<RiderLogin />} />
-
+<Route path="/rider-dashboard" element={
+  riderId ? <RiderPanel riderId={riderId} /> : <Navigate to="/rider" />
+} />
+            <Route path="/rider" element={<RiderLogin setRiderId={setRiderId} />} />
           </Routes>
         </main>
       </div>

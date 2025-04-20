@@ -223,12 +223,19 @@ const AdminPannel = ({ setUser }) => {
   };
 //assign riders
 
+
 const assignOrderToRider = async (orderId, riderId) => {
   try {
     const response = await fetch("http://localhost:5000/api/riders/assign-order", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId, riderId }),
+      body: JSON.stringify({ 
+        orderId, 
+        riderId,
+        // Add additional fields needed for notification
+        notificationText: `New delivery assigned: Order #${orderId}`,
+        notificationType: "assignment"
+      }),
     });
 
     if (!response.ok) throw new Error("Failed to assign order");
@@ -243,6 +250,7 @@ const assignOrderToRider = async (orderId, riderId) => {
           ? {
               ...order,
               rider_name: selectedRider?.name || "Assigned",
+              rider_id: riderId,
               status: "Assigned", // immediate visual update
             }
           : order

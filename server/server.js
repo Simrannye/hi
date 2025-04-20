@@ -1314,6 +1314,321 @@ app.post('/api/payments/validate', async (req, res) => {
 });
 
 
+
+// Rider login endpoint
+// Rider login using ID instead of phone
+app.post('/api/riders/login', async (req, res) => {
+  try {
+    const { id, password } = req.body;
+
+    // Validate input
+    if (!id || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Rider ID and password are required' 
+      });
+    }
+
+    // Find rider by ID
+    const [riders] = await pool.query(
+      'SELECT * FROM riders WHERE id = ?',
+      [id]
+    );
+
+    if (riders.length === 0) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid ID or password' 
+      });
+    }
+
+    const rider = riders[0];
+
+    // Check password
+    const passwordMatch = await bcrypt.compare(password, rider.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid ID or password' 
+      });
+    }
+
+    // Return rider info
+    res.json({
+      success: true,
+      message: 'Login successful',
+      id: rider.id,
+      name: rider.name,
+      phone: rider.phone,
+      address: rider.address
+    });
+
+  } catch (error) {
+    console.error('Rider login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during login'
+    });
+  }
+});
+
+
+// Get specific rider information
+app.get('/api/riders/:id', async (req, res) => {
+  try {
+    const riderId = req.params.id;
+    
+    const [riders] = await pool.query(
+      'SELECT id, name, phone, address, created_at FROM riders WHERE id = ?',
+      [riderId]
+    );
+    
+    if (riders.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Rider not found' 
+      });
+    }
+    
+    // Don't send back password hash
+    const rider = riders[0];
+    
+    res.json(rider);
+  } catch (error) {
+    console.error('Get rider error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
+  }
+});
+
+// Get orders for a specific rider
+app.get('/api/riders/:id/orders', async (req, res) => {
+  try {
+    const riderId = req.params.id;
+    const { status } = req.query;
+    
+    let query = `
+      SELECT orders.*, users.username as customer_name, users.phone as customer_phone
+      FROM orders 
+      LEFT JOIN users ON orders.customer = users.id
+      WHERE orders.assigned_rider = ?
+    `;
+    const params = [riderId];
+    
+    // Filter by status if provided
+    if (status) {
+      query += " AND orders.status = ?";
+      params.push(status);
+    }
+    
+    query += " ORDER BY orders.created_at DESC";
+    
+    const [orders] = await pool.query(query, params);
+    
+    // Format the response
+    const formattedOrders = orders.map(order => {
+      return {
+        id: order.id,
+        product_name: order.product_name,
+        quantity: order.quantity,
+        payment: order.payment,
+        status: order.status,
+        address: order.address,
+        phone: order.customer_phone,
+        customer_name: order.customer_name,
+        customer_id: order.customer,
+        created_at: order.created_at
+      };
+    });
+    
+    res.json(formattedOrders);
+  } catch (error) {
+    console.error('Get rider orders error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
+  }
+});
+
+// Update order status by rider
+app.put('/api/orders/:id/status', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { status, riderId } = req.body;
+    
+    if (!status || !riderId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Status and rider ID are required' 
+      });
+    }
+    
+    // Verify the order belongs to this rider
+    const [orders] = await pool.query(
+      'SELECT * FROM orders WHERE id = ? AND assigned_rider = ?',
+      [orderId, riderId]
+    );
+    
+    if (orders.length === 0) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Order not found or not assigned to this rider' 
+      });
+    }
+    
+    // Valid status transitions
+    const validStatuses = ['Assigned', 'Picked Up', 'Completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid status value' 
+      });
+    }
+    
+    // Update order status
+    await pool.query(
+      'UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?',
+      [status, orderId]
+    );
+    
+    // If marking as delivered/completed, record completion time
+    if (status === 'Completed') {
+      await pool.query(
+        'UPDATE orders SET delivered_at = NOW() WHERE id = ?',
+        [orderId]
+      );
+    }
+    
+    // If marking as picked up, record pickup time
+    if (status === 'Picked Up') {
+      await pool.query(
+        'UPDATE orders SET picked_up_at = NOW() WHERE id = ?',
+        [orderId]
+      );
+    }
+    
+    res.json({
+      success: true,
+      message: `Order status updated to ${status}`
+    });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
+  }
+});
+
+// Get rider stats/summary
+app.get('/api/riders/:id/stats', async (req, res) => {
+  try {
+    const riderId = req.params.id;
+    
+    // Get stats for the rider
+    const [result] = await pool.query(`
+      SELECT 
+        COUNT(*) as total_orders,
+        SUM(CASE WHEN status = 'Assigned' OR status = 'Pending' THEN 1 ELSE 0 END) as pending_orders,
+        SUM(CASE WHEN status = 'Picked Up' THEN 1 ELSE 0 END) as in_transit_orders,
+        SUM(CASE WHEN status = 'Completed' OR status = 'Delivered' THEN 1 ELSE 0 END) as completed_orders,
+        DATE_FORMAT(MIN(created_at), '%Y-%m-%d') as first_order_date
+      FROM orders
+      WHERE assigned_rider = ?
+    `, [riderId]);
+    
+    // Find rider's most recent delivery
+    const [latestDelivery] = await pool.query(`
+      SELECT created_at
+      FROM orders
+      WHERE assigned_rider = ? AND (status = 'Completed' OR status = 'Delivered')
+      ORDER BY created_at DESC
+      LIMIT 1
+    `, [riderId]);
+    
+    const stats = result[0];
+    stats.latest_delivery = latestDelivery.length > 0 ? latestDelivery[0].created_at : null;
+    
+    res.json(stats);
+  } catch (error) {
+    console.error('Get rider stats error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
+  }
+});
+
+// Update rider profile
+app.put('/api/riders/:id/profile', async (req, res) => {
+  try {
+    const riderId = req.params.id;
+    const { name, phone, address, currentPassword, newPassword } = req.body;
+    
+    // Get current rider information
+    const [riders] = await pool.query('SELECT * FROM riders WHERE id = ?', [riderId]);
+    
+    if (riders.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Rider not found' 
+      });
+    }
+    
+    const rider = riders[0];
+    
+    // If changing password, verify current password
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Current password is required to set new password' 
+        });
+      }
+      
+      const passwordMatch = await bcrypt.compare(currentPassword, rider.password);
+      
+      if (!passwordMatch) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Current password is incorrect' 
+        });
+      }
+      
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update rider with new password
+      await pool.query(
+        'UPDATE riders SET password = ?, name = ?, phone = ?, address = ? WHERE id = ?',
+        [hashedPassword, name || rider.name, phone || rider.phone, address || rider.address, riderId]
+      );
+    } else {
+      // Update rider without changing password
+      await pool.query(
+        'UPDATE riders SET name = ?, phone = ?, address = ? WHERE id = ?',
+        [name || rider.name, phone || rider.phone, address || rider.address, riderId]
+      );
+    }
+    
+    res.json({
+      success: true,
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error('Update rider profile error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
+  }
+});
+
+
 app.listen(5000, () => {
     console.log('Server started on http://localhost:5000');
   }); 
