@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyKhaltiPayment } from '../services/khaltiService';
 import Header from './Header';
-import './PaymentSucess.css'
+import "./PaymentSucess.css";
+
 const PaymentSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const PaymentSuccess = () => {
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [error, setError] = useState(null);
 
+  
   useEffect(() => {
     // Extract query parameters from URL
     const params = new URLSearchParams(location.search);
@@ -24,13 +26,13 @@ const PaymentSuccess = () => {
       setStatus('canceled');
       return;
     }
-
+  
     if (!pidx) {
       setStatus('failed');
       setError('Invalid payment response');
       return;
     }
-
+  
     // Set initial payment details from URL params
     setPaymentDetails({
       pidx,
@@ -39,21 +41,29 @@ const PaymentSuccess = () => {
       amount: amount ? parseInt(amount)/100 : 0, // Convert from paisa to NPR
       purchase_order_id: purchaseOrderId
     });
-
+  
     // Verify payment with server
     const verifyPayment = async () => {
       try {
         const result = await verifyKhaltiPayment(pidx);
         
+        // Per Khalti docs, only "Completed" status should be treated as success
         if (result.status === 'Completed') {
           setStatus('success');
           // Update payment details with verification result
           setPaymentDetails(prevDetails => ({
             ...prevDetails,
-            ...result
+            ...result,
+            amount: result.total_amount/100, // Convert from paisa to NPR
           }));
         } else if (result.status === 'Pending') {
           setStatus('pending');
+        } else if (result.status === 'Refunded') {
+          setStatus('failed');
+          setError('Payment was refunded');
+        } else if (result.status === 'Expired') {
+          setStatus('failed');
+          setError('Payment link expired');
         } else {
           setStatus('failed');
           setError(`Payment ${result.status}`);
@@ -64,15 +74,12 @@ const PaymentSuccess = () => {
         setError('Failed to verify payment. Please contact support.');
       }
     };
-
-    // Only verify if status is "Completed" from the redirect
-    if (status === 'Completed') {
-      verifyPayment();
-    } else {
-      setStatus('failed');
-      setError(`Payment ${status || 'was not completed'}`);
-    }
+  
+    // Always verify the payment status regardless of the redirect status
+    // This follows the Khalti docs recommendation to always use lookup API
+    verifyPayment();
   }, [location]);
+
 
   const handleContinueShopping = () => {
     navigate('/');
@@ -145,4 +152,4 @@ const PaymentSuccess = () => {
   );
 };
 
-export default PaymentSuccess;
+export default PaymentSuccess; 

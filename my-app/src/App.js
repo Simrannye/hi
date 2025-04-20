@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import Cart from "./components/Cart";
 import Contact from "./components/Contact";
 import Offers from "./components/Offers";
 import Profile from "./components/Profile";
@@ -17,6 +16,7 @@ import ForgotPassword from './components/ForgotPassword';
 import PaymentSuccess from './components/PaymentSuccess';
 import UserOrders from './components/UserOrders'; 
 import AdminRoute from './components/AdminRoute';
+import RiderLogin from "./rider/RiderLogin";
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;
@@ -76,7 +76,6 @@ function App() {
             <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
             <Route path="/offers" element={<ProtectedRoute><Offers /></ProtectedRoute>} />
             <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
-            <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/UserSetting" element={<ProtectedRoute><UserSetting /></ProtectedRoute>} />
             <Route path="/Products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
@@ -93,6 +92,10 @@ function App() {
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/userauth" element={<UserAuth />} />
             <Route path="/forgot" element={<ForgotPassword />} />
+            {/* {process.env.NODE_ENV === 'development' && (
+           <Route path="/khalti-test" element={<KhaltiTestComponent />} />)} */}
+           <Route path="/rider" element={<RiderLogin />} />
+
           </Routes>
         </main>
       </div>

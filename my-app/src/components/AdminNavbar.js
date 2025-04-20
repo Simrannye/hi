@@ -61,12 +61,21 @@ const AdminNavbar = ({ activeTab, setActiveTab, setUser }) => {
           >
             <FaClipboardList className="nav-icon" /> Orders
           </li>
+
           <li
             className={activeTab === 'contact_messages' ? 'active' : ''}
             onClick={() => setActiveTab('contact_messages')}
           >
             <FaClipboardList className="nav-icon" /> Messages
           </li>
+
+          <li
+            className={activeTab === 'riders' ? 'active' : ''}
+            onClick={() => setActiveTab('riders')}
+          >
+            <FaClipboardList className="nav-icon" /> Riders
+          </li>
+
           <li onClick={!isLoggingOut ? handleLogout : null} style={{ opacity: isLoggingOut ? 0.5 : 1, cursor: 'pointer' }}>
           <FaClipboardList className="nav-icon" /> 
           {isLoggingOut ? "Logging out..." : "LogOut"}

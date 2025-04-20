@@ -31,6 +31,8 @@ header .logo {
   text-transform: uppercase;
   letter-spacing: 1px;
   transition: color 0.3s;
+  margin-top: 23px;
+
 }
 
 header .logo span {

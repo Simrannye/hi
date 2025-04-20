@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import "./Products.css";
 import Header from "./Header";
 
@@ -15,7 +15,11 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null); // product to show in popup
-  const [showModal, setShowModal] = useState(false);  
+  const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // New state for search
+  const [location, setLocation] = useState("all");
+  const locationSearch = useLocation(); // for reading URL params
+  
 
   const navigate = useNavigate();
 
@@ -24,12 +28,17 @@ const Products = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/products');
+        const url = location === "all"
+          ? "http://localhost:5000/api/products"
+          : `http://localhost:5000/api/products?location=${location}`;
+    
+        const response = await axios.get(url);
         const productsWithQuantity = response.data.map(product => ({
           ...product,
           quantity: 0,
-          inStock: product.instock > 0
+          inStock: product.instock > 0,
         }));
+    
         setProducts(productsWithQuantity);
         setLoading(false);
       } catch (err) {
@@ -38,6 +47,7 @@ const Products = () => {
         setLoading(false);
       }
     };
+    
   
     const fetchCartIfAuthenticated = async () => {
       try {
@@ -59,16 +69,50 @@ const Products = () => {
     fetchProducts();
     fetchCartIfAuthenticated();
     
-  }, []);
+    // Check for search query in URL params
+    const params = new URLSearchParams(locationSearch.search);
+    if (params.get('search')) {
+      setSearchQuery(params.get('search'));
+    }
+  }, [location, locationSearch.search]);
 
-  // Filter products when category changes
+  // When search query changes, find matching product and show modal
   useEffect(() => {
-    if (activeCategory === 'all') {
+    if (searchQuery && products.length > 0) {
+      // First look for an exact match
+      const exactMatch = products.find(
+        product => product.name.toLowerCase() === searchQuery.toLowerCase()
+      );
+      
+      if (exactMatch) {
+        // If exact match found, show the product details modal
+        setSelectedProduct(exactMatch);
+        setShowModal(true);
+      }
+      
+      // Also filter the products list
+      const matches = products.filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredProducts(matches);
+    } else if (activeCategory === 'all') {
       setFilteredProducts(products);
     } else {
       setFilteredProducts(products.filter(product => product.category === activeCategory));
     }
-  }, [activeCategory, products]);
+  }, [searchQuery, products, activeCategory]);
+
+  // Filter products when category changes
+  useEffect(() => {
+    if (!searchQuery) {
+      if (activeCategory === 'all') {
+        setFilteredProducts(products);
+      } else {
+        setFilteredProducts(products.filter(product => product.category === activeCategory));
+      }
+    }
+  }, [activeCategory, products, searchQuery]);
 
   // Handle quantity increase
   const increaseQuantity = (id) => {
@@ -84,8 +128,15 @@ const Products = () => {
           : product
       )
     );
+    
+    // Also update the selected product if it's the same one
+    if (selectedProduct && selectedProduct.id === id) {
+      setSelectedProduct(prev => ({
+        ...prev,
+        quantity: prev.quantity < prev.instock ? prev.quantity + 1 : prev.quantity
+      }));
+    }
   };
-  
 
   // Handle quantity decrease
   const decreaseQuantity = (id) => {
@@ -96,6 +147,14 @@ const Products = () => {
           : product
       )
     );
+    
+    // Also update the selected product if it's the same one
+    if (selectedProduct && selectedProduct.id === id) {
+      setSelectedProduct(prev => ({
+        ...prev,
+        quantity: prev.quantity > 0 ? prev.quantity - 1 : 0
+      }));
+    }
   };
 
   const addToCart = async (id) => {
@@ -103,7 +162,7 @@ const Products = () => {
   
     if (!product) return;
   
-    // ⛔ Block if quantity is 0 or exceeds in-stock
+    // Block if quantity is 0 or exceeds in-stock
     if (product.quantity === 0 || product.quantity > product.instock) {
       showNotification(`Only ${product.instock} available in stock`);
       return;
@@ -141,6 +200,14 @@ const Products = () => {
           p.id === id ? { ...p, quantity: 0 } : p
         )
       );
+      
+      // Reset quantity in selected product if it's the same one
+      if (selectedProduct && selectedProduct.id === id) {
+        setSelectedProduct(prev => ({
+          ...prev,
+          quantity: 0
+        }));
+      }
   
       showNotification(`Added ${product.name} to cart!`);
     } catch (err) {
@@ -148,8 +215,62 @@ const Products = () => {
       showNotification("Error adding to cart.");
     }
   };
-  
-  
+
+  // Modal add to cart
+  const addToCartFromModal = async () => {
+    if (!selectedProduct || selectedProduct.quantity === 0) {
+      showNotification("Please select a quantity");
+      return;
+    }
+
+    try {
+      await axios.post('http://localhost:5000/api/cart', {
+        product_id: selectedProduct.id,
+        quantity: selectedProduct.quantity
+      }, {
+        withCredentials: true
+      });
+
+      // Update cart locally
+      setCart(prevCart => {
+        const existingIndex = prevCart.findIndex(item => item.id === selectedProduct.id);
+        if (existingIndex >= 0) {
+          const updated = [...prevCart];
+          updated[existingIndex].quantity += selectedProduct.quantity;
+          return updated;
+        } else {
+          return [
+            ...prevCart,
+            {
+              id: selectedProduct.id,
+              name: selectedProduct.name,
+              price: selectedProduct.price,
+              quantity: selectedProduct.quantity
+            }
+          ];
+        }
+      });
+
+      // Update the quantity in the main products list
+      setProducts(prevProducts =>
+        prevProducts.map(p =>
+          p.id === selectedProduct.id ? { ...p, quantity: 0 } : p
+        )
+      );
+
+      showNotification(`Added ${selectedProduct.name} to cart!`);
+      setShowModal(false);
+      
+      // Reset quantity in selected product
+      setSelectedProduct(prev => ({
+        ...prev,
+        quantity: 0
+      }));
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      showNotification("Failed to add to cart");
+    }
+  };
 
   // Remove item from cart
   const removeFromCart = (id) => {
@@ -184,10 +305,15 @@ const Products = () => {
   // Get unique categories from products
   const categories = ['all', ...new Set(products.map(product => product.category))];
 
+  // Clear search filter
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   if (loading) {
     return (
       <>
-        <Header />
+        <Header setSearchQuery={setSearchQuery} />
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading products...</p>
@@ -199,7 +325,7 @@ const Products = () => {
   if (error) {
     return (
       <>
-        <Header />
+        <Header setSearchQuery={setSearchQuery} />
         <div className="error-container">
           <p className="error-message">{error}</p>
           <button onClick={() => window.location.reload()} className="retry-button">
@@ -212,7 +338,7 @@ const Products = () => {
 
   return (
     <>
-      <Header />
+      <Header setSearchQuery={setSearchQuery} />
       
       <div className="container">
         {/* Logo and Cart Icon */}
@@ -224,6 +350,30 @@ const Products = () => {
           </div>
         </div>
         
+        {/* Search Results Indicator */}
+        {searchQuery && (
+          <div className="search-results-header">
+            <h2>Search Results for: "{searchQuery}"</h2>
+            <button className="clear-search-btn" onClick={clearSearch}>
+              Clear Search
+            </button>
+          </div>
+        )}
+<div className="location-selector">
+  <label htmlFor="location">Select Location:</label>
+  <select
+    id="location"
+    value={location}
+    onChange={(e) => setLocation(e.target.value)}
+    className="location-dropdown"
+  >
+  <option value="all">Select Location</option>
+  <option value="Budhanilkantha">Budhanilkantha</option>
+  <option value="Thamel">Thamel</option>
+  <option value="Naxal">Naxal</option>
+  </select>
+</div>
+
         {/* Filter Section */}
         <div className="filter-section">
           {categories.map(category => (
@@ -240,7 +390,9 @@ const Products = () => {
         {/* Products Grid */}
         <div className="products-grid">
           {filteredProducts.length === 0 ? (
-            <p className="no-products">No products found in this category</p>
+            <p className="no-products">
+              {searchQuery ? `No products found matching "${searchQuery}"` : "No products found in this category"}
+            </p>
           ) : (
             filteredProducts.map(product => (
               <div 
@@ -248,15 +400,23 @@ const Products = () => {
                 className={`product-card ${!product.inStock ? 'out-of-stock' : ''}`}
               >
                 <img
-  src={product.image}
-  alt={product.name}
-  className="product-image clickable"
-  onClick={() => {
-    setSelectedProduct(product);
-    setShowModal(true);
-  }}
-/>
-                <h3 className="product-name">{product.name}</h3>
+                  src={product.image}
+                  alt={product.name}
+                  className="product-image clickable"
+                  onClick={() => {
+                    setSelectedProduct(product);
+                    setShowModal(true);
+                  }}
+                />
+                <h3 
+                  className="product-name clickable" 
+                  onClick={() => {
+                    setSelectedProduct(product);
+                    setShowModal(true);
+                  }}
+                >
+                  {product.name}
+                </h3>
                 <p className="product-price">NPR {Number(product.price).toFixed(2)}</p>
                 <p className="product-description">{product.description}</p>
                 
@@ -264,31 +424,32 @@ const Products = () => {
                   <span className="out-of-stock-label">Out of Stock</span>
                 ) : (
                   <>
-<div className="quantity-controls">
-  <button 
-    className="quantity-btn decrease" 
-    onClick={() => decreaseQuantity(product.id)}
-  >
-    -
-  </button>
-  <span className="quantity">{product.quantity}</span>
-  <button 
-    className="quantity-btn increase" 
-    onClick={() => increaseQuantity(product.id)}
-    disabled={product.quantity >= product.instock}
-    title={product.quantity >= product.instock ? 'Reached max available stock' : ''}
-  >
-    +
-  </button>
-</div>
+                    <div className="quantity-controls">
+                      <button 
+                        className="quantity-btn decrease" 
+                        onClick={() => decreaseQuantity(product.id)}
+                      >
+                        -
+                      </button>
+                      <span className="quantity">{product.quantity}</span>
+                      <button 
+                        className="quantity-btn increase" 
+                        onClick={() => increaseQuantity(product.id)}
+                        disabled={product.quantity >= product.instock}
+                        title={product.quantity >= product.instock ? 'Reached max available stock' : ''}
+                      >
+                        +
+                      </button>
+                    </div>
 
-{product.quantity >= product.instock && (
-  <p className="stock-warning">Only {product.instock} available in stock</p>
-)}
+                    {product.quantity >= product.instock && (
+                      <p className="stock-warning">Only {product.instock} available in stock</p>
+                    )}
 
                     <button 
                       className="add-to-cart-btn" 
                       onClick={() => addToCart(product.id)}
+                      disabled={product.quantity === 0}
                     >
                       Add to Cart
                     </button>
@@ -362,96 +523,65 @@ const Products = () => {
           {notification}
         </div>
       )}
+      
+      {/* Product Modal */}
       {showModal && selectedProduct && (
-  <div className="product-modal-overlay" onClick={() => setShowModal(false)}>
-    <div
-      className="product-modal"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
-      <img src={selectedProduct.image} alt={selectedProduct.name} className="modal-image" />
-      <h2>{selectedProduct.name}</h2>
-      <p>{selectedProduct.description}</p>
-      <p><strong>NPR {Number(selectedProduct.price).toFixed(2)}</strong></p>
-      <p>Stock: {selectedProduct.instock}</p>
+        <div className="product-modal-overlay" onClick={() => setShowModal(false)}>
+          <div
+            className="product-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            <img src={selectedProduct.image} alt={selectedProduct.name} className="modal-image" />
+            <h2>{selectedProduct.name}</h2>
+            <p>{selectedProduct.description}</p>
+            <p><strong>NPR {Number(selectedProduct.price).toFixed(2)}</strong></p>
+            <p>Stock: {selectedProduct.instock}</p>
 
-      {/* Quantity Control */}
-      <div className="quantity-controls">
-        <button
-          className="quantity-btn decrease"
-          onClick={() =>
-            setSelectedProduct(prev => ({
-              ...prev,
-              quantity: Math.max((prev.quantity || 0) - 1, 0)
-            }))
-          }
-        >
-          –
-        </button>
-        <span className="quantity">{selectedProduct.quantity || 0}</span>
-        <button
-          className="quantity-btn increase"
-          onClick={() =>
-            setSelectedProduct(prev =>
-              (prev.quantity || 0) < prev.instock
-                ? { ...prev, quantity: (prev.quantity || 0) + 1 }
-                : prev
-            )
-          }
-        >
-          +
-        </button>
-      </div>
+            {/* Quantity Control */}
+            <div className="quantity-controls modal-quantity">
+              <button
+                className="quantity-btn decrease"
+                onClick={() =>
+                  setSelectedProduct(prev => ({
+                    ...prev,
+                    quantity: Math.max((prev.quantity || 0) - 1, 0)
+                  }))
+                }
+              >
+                –
+              </button>
+              <span className="quantity">{selectedProduct.quantity || 0}</span>
+              <button
+                className="quantity-btn increase"
+                onClick={() =>
+                  setSelectedProduct(prev =>
+                    (prev.quantity || 0) < prev.instock
+                      ? { ...prev, quantity: (prev.quantity || 0) + 1 }
+                      : prev
+                  )
+                }
+                disabled={selectedProduct.quantity >= selectedProduct.instock}
+              >
+                +
+              </button>
+            </div>
 
-      {/* Add to Cart */}
-      <button
-        className="add-to-cart-btn"
-        onClick={async () => {
-          if ((selectedProduct.quantity || 0) === 0) return;
+            {selectedProduct.quantity >= selectedProduct.instock && (
+              <p className="stock-warning">Only {selectedProduct.instock} available in stock</p>
+            )}
 
-          try {
-            await axios.post('http://localhost:5000/api/cart', {
-              product_id: selectedProduct.id,
-              quantity: selectedProduct.quantity
-            }, {
-              withCredentials: true
-            });
-
-            // Update cart locally
-            setCart(prevCart => {
-              const existingIndex = prevCart.findIndex(item => item.id === selectedProduct.id);
-              if (existingIndex >= 0) {
-                const updated = [...prevCart];
-                updated[existingIndex].quantity += selectedProduct.quantity;
-                return updated;
-              } else {
-                return [
-                  ...prevCart,
-                  {
-                    id: selectedProduct.id,
-                    name: selectedProduct.name,
-                    price: selectedProduct.price,
-                    quantity: selectedProduct.quantity
-                  }
-                ];
-              }
-            });
-
-            showNotification(`Added ${selectedProduct.name} to cart!`);
-            setShowModal(false);
-          } catch (err) {
-            console.error("Error adding to cart:", err);
-            showNotification("Failed to add to cart");
-          }
-        }}
-        disabled={(selectedProduct.quantity || 0) === 0}
-      >
-        Add to Cart
-      </button>
-    </div>
-  </div>
-)}
-
+            {/* Add to Cart */}
+            <button
+              className="add-to-cart-btn modal-add-btn"
+              onClick={addToCartFromModal}
+              disabled={(selectedProduct.quantity || 0) === 0}
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

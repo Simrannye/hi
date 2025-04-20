@@ -14,10 +14,11 @@ const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
 
-const khaltiSecretKey = process.env.KHALTI_SECRET_KEY;
-console.log("Khalti Secret Key:", khaltiSecretKey); 
+// Import your Khalti payment utility functions
+const { initiatePayment, validatePaymentSuccess } = require('./utils/KhaltiPayment');
 
-console.log("Khalti Secret Key:", process.env.KHALTI_SECRET_KEY);
+// Middleware to parse JSON bodies
+app.use(express.json());
 
 
 // Set up upload folder
@@ -784,16 +785,18 @@ app.put('/api/auth/update-profile', async (req, res) => {
 
 app.post("/api/products", upload.single('image'), async (req, res) => {
   try {
-    const { name, price, category, description, instock } = req.body;
+    const { name, price, category, description, instock, location } = req.body;
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
-    if (!name || !price || !category || !description || instock === null) {
-      return res.status(400).json({ message: "All fields are required" });
+    // Validate inputs
+    if (!name || !price || !category || !description || instock === null || !location) {
+      return res.status(400).json({ message: "All fields are required including location" });
     }
 
+    // Insert product with location
     const [result] = await pool.query(
-      "INSERT INTO products (name, price, category, description, instock, image) VALUES (?, ?, ?, ?, ?, ?)",
-      [name, price, category, description, instock, imagePath]
+      "INSERT INTO products (name, price, category, description, instock, image, location) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, price, category, description, instock, imagePath, location]
     );
 
     res.status(201).json({
@@ -803,25 +806,36 @@ app.post("/api/products", upload.single('image'), async (req, res) => {
       category,
       description,
       instock,
+      location,
       image: imagePath,
     });
   } catch (error) {
     console.error("Error adding product:", error);
-    console.error(" Backend error (add product):", error.message);
     res.status(500).json({ message: "Server error" });
   }
 });
 
+
 // Get All Products
 app.get("/api/products", async (req, res) => {
   try {
-    const [products] = await pool.query("SELECT * FROM products");
+    const { location } = req.query;
+    let query = "SELECT * FROM products";
+    const params = [];
+
+    if (location) {
+      query += " WHERE location = ?";
+      params.push(location);
+    }
+
+    const [products] = await pool.query(query, params);
     res.json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 
@@ -949,36 +963,50 @@ app.get("/api/orders", async (req, res) => {
     const { customer, page = 1, limit = 10, start, end } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    let query = "SELECT * FROM orders WHERE 1=1";
-    let countQuery = "SELECT COUNT(*) as total FROM orders WHERE 1=1";
+    let baseQuery = `
+      SELECT 
+        orders.*, 
+        riders.name AS rider_name 
+      FROM orders 
+      LEFT JOIN riders ON orders.assigned_rider = riders.id 
+      WHERE 1=1
+    `;
+
+    let countQuery = `
+      SELECT COUNT(*) as total 
+      FROM orders 
+      LEFT JOIN riders ON orders.assigned_rider = riders.id 
+      WHERE 1=1
+    `;
+
     const params = [];
     const countParams = [];
 
     if (customer) {
-      query += " AND customer = ?";
-      countQuery += " AND customer = ?";
+      baseQuery += " AND orders.customer = ?";
+      countQuery += " AND orders.customer = ?";
       params.push(customer);
       countParams.push(customer);
     }
 
     if (start) {
-      query += " AND created_at >= ?";
-      countQuery += " AND created_at >= ?";
+      baseQuery += " AND orders.created_at >= ?";
+      countQuery += " AND orders.created_at >= ?";
       params.push(start);
       countParams.push(start);
     }
 
     if (end) {
-      query += " AND created_at <= ?";
-      countQuery += " AND created_at <= ?";
+      baseQuery += " AND orders.created_at <= ?";
+      countQuery += " AND orders.created_at <= ?";
       params.push(end);
       countParams.push(end);
     }
 
-    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+    baseQuery += " ORDER BY orders.created_at DESC LIMIT ? OFFSET ?";
     params.push(parseInt(limit), offset);
 
-    const [orders] = await pool.query(query, params);
+    const [orders] = await pool.query(baseQuery, params);
     const [[countResult]] = await pool.query(countQuery, countParams);
 
     res.json({
@@ -988,7 +1016,7 @@ app.get("/api/orders", async (req, res) => {
       limit: parseInt(limit),
     });
   } catch (error) {
-    console.error("Error fetching filtered orders:", error);
+    console.error("Error fetching filtered orders with rider name:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -1040,21 +1068,37 @@ app.put("/api/orders/:id", async (req, res) => {
       return res.status(400).json({ message: "Order status is required" });
     }
 
-    const [result] = await pool.query(
-      "UPDATE orders SET status = ? WHERE id = ?",
-      [status, id]
-    );
-
-    if (result.affectedRows === 0) {
+    // Get the order
+    const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
+    if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    res.json({ message: "Order status updated successfully" });
+    // Only decrease stock if marking as Completed AND wasn't already completed
+    if (status === "Completed" && order.status !== "Completed") {
+      const items = order.product_name.split(','); // e.g., "Apple x 2, Banana x 1"
+      for (let item of items) {
+        const [name, qty] = item.split('x').map(s => s.trim());
+        const quantity = parseInt(qty);
+        if (!isNaN(quantity)) {
+          await pool.query(
+            "UPDATE products SET instock = GREATEST(instock - ?, 0) WHERE name = ?",
+            [quantity, name]
+          );
+        }
+      }
+    }
+
+    // Update the order status
+    await pool.query("UPDATE orders SET status = ? WHERE id = ?", [status, id]);
+
+    res.json({ message: "Order status updated and stock adjusted if needed" });
   } catch (error) {
     console.error("Error updating order status:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 // Delete an order
 app.delete("/api/orders/:id", async (req, res) => {
@@ -1077,135 +1121,6 @@ app.delete("/api/orders/:id", async (req, res) => {
 
 
 
-
-app.post('/api/khalti/initiate', async (req, res) => {
-  try {
-    // Check if KHALTI_SECRET_KEY is set
-    if (!process.env.KHALTI_SECRET_KEY) {
-      console.error('KHALTI_SECRET_KEY is not set in environment variables');
-      return res.status(500).json({
-        success: false,
-        message: 'Payment service configuration error: Missing API key'
-      });
-    }
-
-    // Extract payment data from request
-    const {
-      return_url,
-      website_url,
-      amount,
-      purchase_order_id,
-      purchase_order_name,
-      customer_info
-    } = req.body;
-
-    // Validate required fields
-    if (!return_url || !website_url || !amount || !purchase_order_id || !purchase_order_name) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Missing required fields' 
-      });
-    }
-
-    // Validate customer info
-    if (!customer_info || !customer_info.name || !customer_info.email || !customer_info.phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Customer information incomplete'
-      });
-    }
-
-    // Prepare payload
-    const payload = {
-      return_url,
-      website_url,
-      amount,
-      purchase_order_id,
-      purchase_order_name,
-      customer_info
-    };
-
-    if (req.body.amount_breakdown) payload.amount_breakdown = req.body.amount_breakdown;
-    if (req.body.product_details) payload.product_details = req.body.product_details;
-
-    console.log('Initiating Khalti payment with payload:', payload);
-
-    // Use dev URL for test key
-    const khaltiInitiateUrl = 'https://dev.khalti.com/api/v2/epayment/initiate/';
-
-    // Call Khalti API
-    const response = await axios.post(khaltiInitiateUrl, payload, {
-      headers: {
-        'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    console.log('Khalti response:', response.data);
-    return res.json(response.data);
-
-  } catch (error) {
-    console.error('Khalti API call failed:', error.response?.data || error.message);
-    return res.status(error.response?.status || 500).json({
-      success: false,
-      message: 'Failed to initiate payment',
-      error: error.response?.data || error.message
-    });
-  }
-});
-
-// Verify Khalti payment
-app.post('/api/khalti/verify', async (req, res) => {
-  try {
-    const { pidx } = req.body;
-
-    if (!pidx) {
-      return res.status(400).json({
-        success: false,
-        message: 'Payment ID (pidx) is required'
-      });
-    }
-
-    console.log('Verifying Khalti payment with pidx:', pidx);
-
-    // Make request to Khalti lookup API
-    const response = await axios.post(
-      'https://dev.khalti.com/api/v2/epayment/lookup/',  // Use prod URL in production
-      { pidx },
-      {
-        headers: {
-          'Authorization': `Key ${process.env.KHALTI_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    console.log('Khalti verification response:', response.data);
-
-    // Save the order to database if payment is completed
-    if (response.data.status === 'Completed') {
-      // You can add code here to save the order to your database
-      // This would depend on your specific database schema
-      
-      // Example:
-      // await pool.query(
-      //   'INSERT INTO orders (transaction_id, amount, status, created_at) VALUES (?, ?, ?, NOW())',
-      //   [response.data.transaction_id, response.data.total_amount/100, 'Completed']
-      // );
-    }
-
-    // Return verification result to client
-    res.json(response.data);
-  } catch (error) {
-    console.error('Khalti payment verification error:', error.response?.data || error.message);
-    
-    res.status(error.response?.status || 500).json({
-      success: false,
-      message: 'Failed to verify payment',
-      error: error.response?.data || error.message
-    });
-  }
-});
 
 
 
@@ -1241,6 +1156,168 @@ app.get("/api/messages", async (req, res) => {
 
 
 
+// Get all riders
+app.get("/api/riders", async (req, res) => {
+  try {
+    const [riders] = await pool.query("SELECT * FROM riders");
+    res.json(riders);
+  } catch (error) {
+    console.error("Error fetching riders:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Add a new rider
+app.post("/api/riders", async (req, res) => {
+  try {
+    const { name, address, phone, password } = req.body;
+    if (!name || !phone || !password) {
+      return res.status(400).json({ message: "Name, phone, and password are required" });
+    }
+
+    const [existingRiders] = await pool.query("SELECT * FROM riders WHERE phone = ?", [phone]);
+    if (existingRiders.length > 0) {
+      return res.status(409).json({ message: "Phone number already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const [result] = await pool.query(
+      "INSERT INTO riders (name, address, phone, password) VALUES (?, ?, ?, ?)",
+      [name, address || '', phone, hashedPassword]
+    );
+
+    res.status(201).json({
+      id: result.insertId,
+      name,
+      address,
+      phone
+    });
+  } catch (error) {
+    console.error("Error adding rider:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update a rider
+app.put("/api/riders/:id", async (req, res) => {
+  try {
+    const { name, address, phone, password } = req.body;
+    const riderId = req.params.id;
+
+    const [riders] = await pool.query("SELECT * FROM riders WHERE id = ?", [riderId]);
+    if (riders.length === 0) return res.status(404).json({ message: "Rider not found" });
+
+    const rider = riders[0];
+    const updatedName = name || rider.name;
+    const updatedAddress = address !== undefined ? address : rider.address;
+    const updatedPhone = phone || rider.phone;
+
+    if (phone && phone !== rider.phone) {
+      const [existing] = await pool.query("SELECT * FROM riders WHERE phone = ? AND id != ?", [phone, riderId]);
+      if (existing.length > 0) return res.status(409).json({ message: "Phone already registered" });
+    }
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.query("UPDATE riders SET name = ?, address = ?, phone = ?, password = ? WHERE id = ?",
+        [updatedName, updatedAddress, updatedPhone, hashedPassword, riderId]);
+    } else {
+      await pool.query("UPDATE riders SET name = ?, address = ?, phone = ? WHERE id = ?",
+        [updatedName, updatedAddress, updatedPhone, riderId]);
+    }
+
+    res.json({ message: "Rider updated", rider: { id: riderId, name: updatedName, address: updatedAddress, phone: updatedPhone } });
+  } catch (error) {
+    console.error("Error updating rider:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Delete a rider
+app.delete("/api/riders/:id", async (req, res) => {
+  try {
+    const riderId = req.params.id;
+    const [riders] = await pool.query("SELECT * FROM riders WHERE id = ?", [riderId]);
+    if (riders.length === 0) return res.status(404).json({ message: "Rider not found" });
+
+    await pool.query("DELETE FROM riders WHERE id = ?", [riderId]);
+    res.json({ message: "Rider deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting rider:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/api/riders/assign-order", async (req, res) => {
+  try {
+    const { orderId, riderId } = req.body;
+
+    if (!orderId || !riderId) {
+      return res.status(400).json({ message: "Order ID and Rider ID are required" });
+    }
+
+    // Check if order exists
+    const [orders] = await pool.query("SELECT * FROM orders WHERE id = ?", [orderId]);
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Check if rider exists
+    const [riders] = await pool.query("SELECT * FROM riders WHERE id = ?", [riderId]);
+    if (riders.length === 0) {
+      return res.status(404).json({ message: "Rider not found" });
+    }
+
+    // Assign the order
+    await pool.query(
+      "UPDATE orders SET assigned_rider = ?, status = 'Assigned' WHERE id = ?",
+      [riderId, orderId]
+    );
+
+    res.json({ message: "Order assigned to rider successfully" });
+  } catch (error) {
+    console.error("Error assigning order:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+
+// Route to initiate payment
+app.post('/api/payments/initiate', async (req, res) => {
+  try {
+    const { userId, amount, purchaseOrderName, returnUrl, websiteUrl } = req.body;
+    const paymentResponse = await initiatePayment({
+      userId,
+      amount,
+      purchaseOrderName,
+      returnUrl,
+      websiteUrl
+    });
+    res.status(200).json(paymentResponse); // Return payment URL and PIDX
+  } catch (error) {
+    console.error("Payment initiation failed:", error);
+    res.status(500).json({ message: "Payment initiation failed", error: error.message });
+  }
+});
+
+// Route to validate payment success
+app.post('/api/payments/validate', async (req, res) => {
+  try {
+    const { pidx } = req.body; // Payment ID (pidx) to validate
+    const validationResult = await validatePaymentSuccess(pidx);
+    res.status(200).json(validationResult); // Return success status and details
+  } catch (error) {
+    console.error("Payment validation failed:", error);
+    res.status(500).json({ message: "Payment validation failed", error: error.message });
+  }
+});
+
+
 app.listen(5000, () => {
     console.log('Server started on http://localhost:5000');
   }); 
+
+
+
+  

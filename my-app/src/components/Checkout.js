@@ -5,40 +5,43 @@ import axios from 'axios';
 import Header from "./Header"; 
 import './Checkout.css';
 import cartImage from "./cart.jpg";
-import { initiateKhaltiPayment } from '../services/khaltiService';
+// import { initiateKhaltiPayment } from '../services/khaltiService';
+
+
+
+
 
 const Checkout = () => {
-
   const location = useLocation();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [showFallback, setShowFallback] = useState(false);
   const [user, setUser] = useState({ username: 'Guest', email: '', phone: '' });
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [processingState, setProcessingState] = useState('');
 
-useEffect(() => {
-  const fetchUser = async () => {
-    try {
-      const res = await axios.get('http://localhost:5000/api/auth/status', {
-        withCredentials: true,
-      });
-      if (res.data.authenticated) {
-        setUser({
-          username: res.data.user.username,
-          email: res.data.user.email,
-          phone: res.data.user.phone || '9800000000' // fallback
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/auth/status', {
+          withCredentials: true,
         });
+        if (res.data.authenticated) {
+          setUser({
+            username: res.data.user.username,
+            email: res.data.user.email,
+            phone: res.data.user.phone || '9800000000' // fallback
+          });
+        }
+      } catch (err) {
+        console.warn('User not logged in');
       }
-    } catch (err) {
-      console.warn('User not logged in');
-    }
-  };
+    };
 
-  fetchUser();
-}, []);
+    fetchUser();
+  }, []);
 
-
-  
   // Get cart items from location state
   const cart = location.state?.cart || [];
   const totalAmount = location.state?.totalAmount || 0;
@@ -48,121 +51,196 @@ useEffect(() => {
     return 'ORD-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
   };
 
-  // Handle Khalti payment
-  const handlePayment = async () => {
+  // // Handle Khalti payment
+  // const handlePayment = async () => {
+  //   if (cart.length === 0) {
+  //     setError("Your cart is empty!");
+  //     return;
+  //   }
+    
+  //   setIsProcessing(true);
+  //   setError(null);
+  //   setShowFallback(false);
+    
+  //   try {
+  //     // Convert total amount to paisa (1 NPR = 100 paisa)
+  //     const totalAmountPaisa = Math.round(totalAmount * 100);
+  
+  //     // Create product details array from cart items
+  //     const productDetails = cart.map(item => ({
+  //       identity: `PROD-${item.id}`,
+  //       name: item.name,
+  //       total_price: Math.round(item.price * item.quantity * 100), // Convert to paisa
+  //       quantity: item.quantity,
+  //       unit_price: Math.round(item.price * 100) // Convert to paisa
+  //     }));
+      
+  //     // Create amount breakdown
+  //     const subtotal = Math.round(totalAmount * 0.87 * 100); // 87% of total
+  //     const vat = Math.round(totalAmount * 0.13 * 100); // 13% VAT
+      
+  //     // Ensure the sum of breakdown exactly matches total (important per Khalti docs)
+  //     const amountBreakdown = [
+  //       { label: "Subtotal", amount: subtotal },
+  //       { label: "VAT (13%)", amount: totalAmountPaisa - subtotal }
+  //     ];
+  
+  //     // All required fields per Khalti docs
+  //     const paymentData = {
+  //       return_url: `${window.location.origin}/payment-success`,
+  //       website_url: window.location.origin,
+  //       amount: totalAmountPaisa,
+  //       purchase_order_id: generateOrderId(),
+  //       purchase_order_name: "GrabNGo Order",
+  //       customer_info: {
+  //         name: user.username,
+  //         email: user.email,
+  //         phone: user.phone
+  //       },
+  //       amount_breakdown: amountBreakdown,
+  //       product_details: productDetails
+  //     };
+      
+  //     // Initiate Khalti payment
+  //     const response = await initiateKhaltiPayment(paymentData);
+      
+  //     if (!response.payment_url) {
+  //       throw new Error("Invalid response from payment service");
+  //     }
+      
+  //     // Redirect to Khalti payment page
+  //     window.location.href = response.payment_url;
+      
+  //   } catch (err) {
+  //     console.error("Payment initiation failed:", err);
+  //     setError(`${err.message || 'Khalti payment service is currently unavailable. Please try again later or choose Cash on Delivery.'}`);
+  //     setShowFallback(true);
+  //     setIsProcessing(false);
+  //   }
+  // // };
+
+  // const initiatePayment = async () => {
+  //   try {
+  //     const response = await axios.post('http://localhost:5000/api/payments/initiate', {
+  //       userId: userId,
+  //       amount: amount,
+  //       purchaseOrderName: "Order #123",
+  //       returnUrl: "http://localhost:3000/paymentsuccess",
+  //       websiteUrl: "http://localhost:3000/"
+  //     });
+  //     console.log(response.data); // Handle the response from the backend
+  //   } catch (error) {
+  //     console.error("Error initiating payment:", error);
+  //   }
+  // };
+  // const validatePayment = async (pidx) => {
+  //   try {
+  //     const response = await axios.post('http://localhost:5000/api/payments/validate', {
+  //       pidx: pidx
+  //     });
+  //     console.log(response.data); // Handle the validated payment result
+  //   } catch (error) {
+  //     console.error("Error validating payment:", error);
+  //   }
+  // };
+    
+  const handleKhaltiPayment = async () => {
+    // Basic validation
+    // if (!user.email) {
+    //   setError("Please enter your email address");
+    //   return;
+    // }
+  
     if (cart.length === 0) {
-      setError("Your cart is empty!");
+      setError("Your cart is empty");
       return;
     }
-    
-    setIsProcessing(true);
-    setError(null);
-    setShowFallback(false);
-    
+  
     try {
-      // Make sure total amount is converted to paisa (integer)
-      const totalAmountPaisa = Math.floor(totalAmount * 100);
-
-      // Create product details array from cart items
-      const productDetails = cart.map(item => ({
-        identity: `PROD-${item.id}`,
-        name: item.name,
-        total_price: Math.floor(item.price * item.quantity), // Convert to paisa
-        quantity: item.quantity,
-        unit_price: Math.floor(item.price * 100) // Convert to paisa
+      setPaymentProcessing(true);
+      setProcessingState('loading');
+      setError(null);
+  
+      // Check if user is logged in
+      const token = localStorage.getItem("token");
+      // if (!token) {
+      //   navigate("/login");
+      //   return;
+      // }
+  
+      // Prepare the items data
+      const itemsData = cart.map(item => ({
+        beatId: item._id || item.id, // fallback in case item.id is used instead
+        license: "Basic",
+        price: item.price
       }));
+  
+      // Initiate payment through backend API
+      const response = await axios.post("http://localhost:5000/api/payments/initiate", {
+        amount: totalAmount,
+        items: itemsData,
+        customerEmail: user.email
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+  
+      console.log("Payment initiation response:", response.data);
+  
+      if (response.data.payment_url) {
+        // Store order data temporarily
+        localStorage.setItem("pendingOrder", JSON.stringify({
+          items: itemsData,
+          totalAmount: totalAmount,
+          customerEmail: user.email,
+          pidx: response.data.pidx
+        }));
       
-      // Create amount breakdown (optional but recommended)
-      const subtotal = Math.floor(totalAmount * 0.87 * 100); // Assuming 13% VAT
-      const vat = Math.floor(totalAmount * 0.13 * 100);
-      
-      // Ensure the sum of breakdown matches total
-      let amountBreakdown = [
-        { label: "Subtotal", amount: subtotal },
-        { label: "VAT (13%)", amount: vat }
-      ];
-
-      // Check if breakdown sum matches total amount
-      const sumBreakdown = subtotal + vat;
-      if (sumBreakdown !== totalAmountPaisa) {
-        console.warn(`Breakdown sum (${sumBreakdown}) doesn't match total (${totalAmountPaisa}). Adjusting subtotal.`);
-        // Adjust subtotal to make the sum match
-        const adjustedSubtotal = totalAmountPaisa - vat;
-        amountBreakdown = [
-          { label: "Subtotal", amount: adjustedSubtotal },
-          { label: "VAT (13%)", amount: vat }
-        ];
-      }
-      
-      // Prepare payment data
-      const paymentData = {
-        return_url: `${window.location.origin}/payment-success`,
-        website_url: window.location.origin,
-        amount: totalAmountPaisa,
-        purchase_order_id: generateOrderId(),
-        purchase_order_name: "GrabNGo Order",
-        customer_info: {
-          name: user.username,
-          email: user.email,
-          phone: user.phone
-        }
-        ,
-        amount_breakdown: amountBreakdown,
-        product_details: productDetails
-      };
-      
-      console.log("Sending payment data:", paymentData);
-      
-      // Send request to server to initiate payment
-      const response = await initiateKhaltiPayment(paymentData);
-      
-      // Check if response contains payment_url
-      if (!response.payment_url) {
-        throw new Error("Invalid response from payment service");
-      }
-      
-      // Redirect user to Khalti payment page
-      window.location.href = response.payment_url;
-      
-    } catch (err) {
-      console.error("Payment initiation failed:", err);
-      setError(`Khalti payment service is currently unavailable. Please try again later or choose Cash on Delivery.`);
-      setShowFallback(true);
-      setIsProcessing(false);
+        // Redirect to Khalti payment page
+        window.location.href = response.data.payment_url;
+      } else {
+        setError("Failed to initialize payment. Please try again.");
+        setPaymentProcessing(false);
+        setProcessingState('error');
+            }
+  
+    } catch (error) {
+      console.error("Checkout error:", error);
+      setError(error.response?.data?.message || "Payment failed. Please try again.");
+      setPaymentProcessing(false);
+      setProcessingState('error');
     }
   };
-
+  
   // Handle Cash on Delivery
-      // Store the order information in local storage if needed
-      const handleCOD = async () => {
-        try {
-          const orderDetails = {
-            customer: user.username,
-            items: cart,
-            totalAmount,
-            paymentMethod: 'COD',
-            orderDate: new Date().toISOString()
-          };
-      
-          console.log("Sending order details:", orderDetails);
-      
-          const res = await axios.post('http://localhost:5000/api/orders', orderDetails, {
-            withCredentials: true
-          });
-      
-          // Optional: Clear cart from DB
-          await axios.delete('http://localhost:5000/api/cart/clear', {
-            withCredentials: true
-          });
-      
-          console.log("Order response:", res.data);
-          alert("Order placed successfully with Cash on Delivery!");
-          navigate("/");
-        } catch (error) {
-          console.error("Error placing COD order:", error);
-          setError("Failed to place order. Please try again.");
-        }
+  const handleCOD = async () => {
+    try {
+      const orderDetails = {
+        customer: user.username,
+        items: cart,
+        totalAmount,
+        paymentMethod: 'COD',
+        orderDate: new Date().toISOString()
       };
+  
+      console.log("Sending order details:", orderDetails);
+  
+      const res = await axios.post('http://localhost:5000/api/orders', orderDetails, {
+        withCredentials: true
+      });
+  
+      // Clear cart from DB
+      await axios.delete('http://localhost:5000/api/cart/clear', {
+        withCredentials: true
+      });
+  
+      console.log("Order response:", res.data);
+      alert("Order placed successfully with Cash on Delivery!");
+      navigate("/");
+    } catch (error) {
+      console.error("Error placing COD order:", error);
+      setError("Failed to place order. Please try again.");
+    }
+  };
 
   // Calculate the breakdown for display purposes
   const subtotal = totalAmount ? (totalAmount * 0.87).toFixed(2) : 0;
@@ -174,10 +252,8 @@ useEffect(() => {
       <div className="checkout-container">
         <h2>Checkout</h2>
 
-        {/* Cart Image Below Heading */}
         <img src={cartImage} alt="Cart" className="cart-image" />
 
-        {/* Display selected items */}
         <div className="checkout-items">
           {cart.length === 0 ? (
             <p>Your cart is empty.</p>
@@ -190,7 +266,6 @@ useEffect(() => {
                 </div>
               ))}
               
-              {/* Show breakdown */}
               <div className="checkout-summary">
                 <div className="summary-item">
                   <span>Subtotal:</span>
@@ -205,28 +280,25 @@ useEffect(() => {
           )}
         </div>
 
-        {/* Total Amount */}
         <p className="checkout-total">Total Amount: NPR {totalAmount}</p>
 
-        {/* Error message if any */}
         {error && (
           <div className="error-container">
             <p className="error-message">{error}</p>
           </div>
         )}
 
-        {/* Payment Options */}
         <div className="payment-options">
           {!showFallback && (
             <button 
               className="pay-button" 
-              onClick={handlePayment} 
+              onClick={handleKhaltiPayment} 
               disabled={isProcessing || cart.length === 0}
             >
               {isProcessing ? "Processing..." : "Pay with Khalti"}
             </button>
           )}
-          
+
           <button 
             className="cod-button" 
             onClick={handleCOD} 
@@ -258,4 +330,4 @@ useEffect(() => {
   );
 };
 
-export default Checkout;
+export default Checkout; 

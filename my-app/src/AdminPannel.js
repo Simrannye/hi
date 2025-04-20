@@ -9,15 +9,26 @@ const AdminPannel = ({ setUser }) => {
 
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [form, setForm] = useState({ id: "", name: "", price: "", category: "", description: "", instock: 0 });
+  const [form, setForm] = useState({ id: "", name: "", price: "", category: "", description: "", instock: 0, location: "", imageFile: null });
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [editingRider, setEditingRider] = useState(null);
+  const [riders, setRiders] = useState([]);
+
+  const [newRider, setNewRider] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    password: "",
+    });
+
 
   // Fetch products from the backend
   useEffect(() => {
     fetchProducts();
     fetchOrders();
     fetchMessages();
+    fetchRiders();
 
   }, []);
   const [messages, setMessages] = useState([]);
@@ -44,20 +55,206 @@ const AdminPannel = ({ setUser }) => {
       const data = await response.json();
       console.log("Fetched Orders:", data);
   
-      setOrders(data.data); // ✅ FIXED
+      setOrders(data.data); 
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
   };
   
 
+  const fetchRiders = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/riders");
+      const data = await response.json();
+      setRiders(data);
+    } catch (error) {
+      console.error("Error fetching riders:", error);
+    }
+  };
+  
+  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    setNewRider((prev) => ({ ...prev, [name]: value }));
     setForm({
       ...form,
       [name]: name === "instock" ? Number(value) || 0 : value || "",
+
     });
   };
+
+
+//adding rider
+
+  const handleSaveRider = async () => {
+    try {
+      const method = editingRider ? "PUT" : "POST";
+      const url = editingRider
+        ? `http://localhost:5000/api/riders/${editingRider.id}`
+        : "http://localhost:5000/api/riders";
+  
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newRider),
+      });
+  
+      if (!response.ok) throw new Error("Save failed");
+  
+      await fetchRiders(); // Refresh list
+      setNewRider({ name: "", address: "", phone: "", password: "" });
+      setEditingRider(null);
+    } catch (error) {
+      console.error("Error saving rider:", error);
+    }
+  };
+  
+
+  //deleting rider
+
+  const handleDeleteRider = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this rider?")) return;
+  
+    try {
+      const response = await fetch(`http://localhost:5000/api/riders/${id}`, {
+        method: "DELETE",
+      });
+  
+      if (!response.ok) throw new Error("Delete failed");
+  
+      fetchRiders(); // Refresh list
+    } catch (error) {
+      console.error("Error deleting rider:", error);
+    }
+  };
+
+  //table and form
+
+  const renderRiders = () => {
+    return (
+      <>
+        <h3 className="admin-subheading">Riders List</h3>
+  
+        {/* Form */}
+        <div className="riders-form">
+          <input
+            name="name"
+            placeholder="Name"
+            value={newRider.name}
+            onChange={handleInputChange}
+          />
+          <input
+            name="address"
+            placeholder="Address"
+            value={newRider.address}
+            onChange={handleInputChange}
+          />
+          <input
+            name="phone"
+            placeholder="Phone"
+            value={newRider.phone}
+            onChange={handleInputChange}
+          />
+          <input
+            name="password"
+            placeholder="Password"
+            type="password"
+            value={newRider.password}
+            onChange={handleInputChange}
+          />
+          <button onClick={handleSaveRider}>
+            {editingRider ? "Update Rider" : "Add Rider"}
+          </button>
+          {editingRider && (
+            <button onClick={() => {
+              setEditingRider(null);
+              setNewRider({ name: "", address: "", phone: "", password: "" });
+            }}>Cancel</button>
+          )}
+        </div>
+  
+        {/* Table */}
+        <div className="table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Password</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {riders.map((rider) => (
+                <tr key={rider.id}>
+                  <td>{rider.id}</td>
+                  <td>{rider.name}</td>
+                  <td>{rider.address}</td>
+                  <td>{rider.phone}</td>
+                  <td>{rider.password}</td>
+                  <td>
+                    <button
+                      onClick={() => {
+                        setEditingRider(rider);
+                        setNewRider({
+                          name: rider.name,
+                          address: rider.address,
+                          phone: rider.phone,
+                          password: rider.password,
+                        });
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button onClick={() => handleDeleteRider(rider.id)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
+    );
+  };
+//assign riders
+
+const assignOrderToRider = async (orderId, riderId) => {
+  try {
+    const response = await fetch("http://localhost:5000/api/riders/assign-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId, riderId }),
+    });
+
+    if (!response.ok) throw new Error("Failed to assign order");
+
+    // Find rider name for immediate update
+    const selectedRider = riders.find((r) => r.id === parseInt(riderId));
+
+    // Update the local orders state
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              rider_name: selectedRider?.name || "Assigned",
+              status: "Assigned", // immediate visual update
+            }
+          : order
+      )
+    );
+  } catch (error) {
+    console.error("Error assigning rider:", error);
+  }
+};
+
+
+    
 
   // Add product to database
   const addProduct = async () => {
@@ -68,6 +265,8 @@ const AdminPannel = ({ setUser }) => {
       formData.append("category", form.category);
       formData.append("description", form.description);
       formData.append("instock", form.instock);
+      formData.append("location", form.location);
+
       if (form.imageFile) {
         formData.append("image", form.imageFile);
       }
@@ -104,6 +303,7 @@ const AdminPannel = ({ setUser }) => {
       formData.append("category", form.category);
       formData.append("description", form.description);
       formData.append("instock", form.instock);
+      formData.append("location", form.location);
       formData.append("oldImage", form.image); // ✅ send old image path
       if (form.imageFile) {
         formData.append("image", form.imageFile);
@@ -212,14 +412,14 @@ const AdminPannel = ({ setUser }) => {
     const completedOrders = orders.filter(order => order.status === "Completed").length;
     const lowStockProducts = products.filter(product => product.instock < 5).length;
     
-    const totalRevenue = orders
-      .filter(order => order.status === "Completed")
-      .reduce((sum, order) => {
-        const product = products.find(p => p.name === order.productname);
-        return sum + (product ? product.price * order.quantity : 0);
-      }, 0);
+    // const totalRevenue = orders
+    //   .filter(order => order.status === "Completed")
+    //   .reduce((sum, order) => {
+    //     const product = products.find(p => p.name === order.productname);
+    //     return sum + (product ? product.price * order.quantity : 0);
+    //   }, 0);
     
-    return { totalProducts, totalOrders, pendingOrders, completedOrders, lowStockProducts, totalRevenue };
+    return { totalProducts, totalOrders, pendingOrders, completedOrders, lowStockProducts };
   };
 
   // Render dashboard
@@ -270,13 +470,13 @@ const AdminPannel = ({ setUser }) => {
     </div>
   </div>
 
-  <div className="stat-card">
+  {/* <div className="stat-card">
     <FaMoneyBillWave className="stat-icon" />
     <div className="stat-content">
       <div className="stat-value">NPR {stats.totalRevenue.toLocaleString()}</div>
       <div className="stat-label">Total Revenue</div>
     </div>
-  </div>
+  </div> */}
 </div>
 
         
@@ -348,6 +548,17 @@ const AdminPannel = ({ setUser }) => {
   onChange={(e) => setForm({ ...form, imageFile: e.target.files[0] })}
 />
 
+<select 
+  name="location" 
+  value={form.location || ""} 
+  onChange={handleInputChange}
+>
+  <option value="">Select Location</option>
+  <option value="Budhanilkantha">Budhanilkantha</option>
+  <option value="Thamel">Thamel</option>
+  <option value="Naxal">Naxal</option>
+</select>
+
 {/* ✅ Show current image from DB */}
 {form.image && !form.imageFile && (
   <img
@@ -388,6 +599,7 @@ const AdminPannel = ({ setUser }) => {
                 <th>Description</th>
                 <th>Images</th>
                 <th>Stock</th>
+                <th>Location</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -408,6 +620,7 @@ const AdminPannel = ({ setUser }) => {
 </td>
 
                   <td>{product.instock}</td>
+                  <td>{product.location || "—"}</td>
                   <td>
                     <button className="admin-btn admin-edit-btn" onClick={() => editProduct(product)}>Edit</button>
                     <button className="admin-btn admin-delete-btn" onClick={() => deleteProduct(product.id)}>Delete</button>
@@ -431,6 +644,8 @@ const AdminPannel = ({ setUser }) => {
         <h4>{product.name}</h4>
         <p>Price: NPR {product.price}</p>
         <p>Stock: {product.instock}</p>
+        <p>Location: {product.location || "—"}</p>
+
         <p className="badge-category">{product.category}</p>
         {product.instock < 5 && (
           <p className="badge-low-stock">Low stock</p>
@@ -451,7 +666,7 @@ const AdminPannel = ({ setUser }) => {
     return (
       <>
         <h3 className="admin-subheading">Order Management</h3>
-        
+  
         <div className="table-container">
           <table className="admin-table">
             <thead>
@@ -461,6 +676,8 @@ const AdminPannel = ({ setUser }) => {
                 <th>Product</th>
                 <th>Quantity</th>
                 <th>Payment Method</th>
+                <th>Assigned Rider</th>
+                <th>Assign</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -470,17 +687,39 @@ const AdminPannel = ({ setUser }) => {
                 <tr key={order.id}>
                   <td>{order.id}</td>
                   <td>{order.customer}</td>
-                  <td>{order.productname}</td>
+                  <td>{order.product_name}</td>
                   <td>{order.quantity}</td>
                   <td>{order.payment}</td>
-                  <td className={order.status === "Completed" ? "completed" : "pending"}>
-                    {order.status}
-                  </td>
+                  <td>{order.rider_name || "Unassigned"}</td>
                   <td>
-                    <button className="admin-btn admin-complete-btn" onClick={() => updateOrderStatus(order.id, "Completed")}>
+                    <select
+                      defaultValue=""
+                      onChange={(e) => assignOrderToRider(order.id, e.target.value)}
+                      className="rider-assign-dropdown"
+                    >
+                      <option value="" disabled>Select Rider</option>
+                      {riders.map((rider) => (
+                        <option key={rider.id} value={rider.id}>
+                          {rider.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className={(order.status || "Pending") === "Completed" ? "completed" : "pending"}>
+                   {order.status || "Pending"}
+                </td>
+
+                  <td>
+                    <button
+                      className="admin-btn admin-complete-btn"
+                      onClick={() => updateOrderStatus(order.id, "Completed")}
+                    >
                       Completed
                     </button>
-                    <button className="admin-btn admin-pending-btn" onClick={() => updateOrderStatus(order.id, "Pending")}>
+                    <button
+                      className="admin-btn admin-pending-btn"
+                      onClick={() => updateOrderStatus(order.id, "Pending")}
+                    >
                       Pending
                     </button>
                   </td>
@@ -492,6 +731,7 @@ const AdminPannel = ({ setUser }) => {
       </>
     );
   };
+  
 
   return (
     <div className="admin-layout">
@@ -507,6 +747,7 @@ const AdminPannel = ({ setUser }) => {
           {activeTab === "products" && renderProducts()}
           {activeTab === "orders" && renderOrders()}
           {activeTab === "contact_messages" && renderMessages()}
+          {activeTab === "riders" && renderRiders()}
         </div>
       </main>
     </div>

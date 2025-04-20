@@ -4,9 +4,20 @@ const API_URL = 'http://localhost:5000';
 
 export const initiateKhaltiPayment = async (paymentData) => {
   try {
+    // Ensure all required fields are present according to Khalti docs
+    const requiredFields = [
+      'return_url', 'website_url', 'amount', 
+      'purchase_order_id', 'purchase_order_name'
+    ];
+    
+    for (const field of requiredFields) {
+      if (!paymentData[field]) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+    
     console.log('Initiating payment with data:', paymentData);
     
-    // Add a timeout to prevent long waits when server is down
     const response = await axios.post(`${API_URL}/api/khalti/initiate`, paymentData, {
       headers: {
         'Content-Type': 'application/json',
@@ -30,7 +41,6 @@ export const initiateKhaltiPayment = async (paymentData) => {
         throw new Error(`Payment error (${error.response.status}): ${error.response.data.message || 'Unknown server error'}`);
       }
     } else if (error.request) {
-      // The request was made but no response was received
       throw new Error('No response from the payment server. Please check your connection or try Cash on Delivery.');
     } else {
       throw new Error(`Request setup error: ${error.message}`);
@@ -46,4 +56,8 @@ export const verifyKhaltiPayment = async (pidx) => {
     console.error('Error verifying Khalti payment:', error);
     throw error;
   }
-};
+}; 
+
+
+
+
