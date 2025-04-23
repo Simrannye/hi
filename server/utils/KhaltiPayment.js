@@ -59,7 +59,7 @@ export const initiatePayment = async ({ userId, amount, purchaseOrderName, retur
     const orderId = userId || `order-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     const payload = {
-      return_url: returnUrl || "http://localhost:3000/checkout-success",
+      return_url: returnUrl || "http://localhost:3000/payment-success",
       website_url: websiteUrl || "http://localhost:3000/",
       amount: amountInPaisa,
       purchase_order_id: orderId,

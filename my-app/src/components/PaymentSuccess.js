@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyKhaltiPayment } from '../services/khaltiService';
 import Header from './Header';
 import "./PaymentSucess.css";
+import axios from 'axios';
+
 
 const PaymentSuccess = () => {
   const location = useLocation();
@@ -10,6 +13,7 @@ const PaymentSuccess = () => {
   const [status, setStatus] = useState('verifying');
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [error, setError] = useState(null);
+  const orderSavedRef = useRef(false);
 
   
   useEffect(() => {
@@ -20,7 +24,7 @@ const PaymentSuccess = () => {
     const txnId = params.get('transaction_id');
     const amount = params.get('amount');
     const purchaseOrderId = params.get('purchase_order_id');
-    
+    console.log("🔍 PIDX:", pidx);
     // Early check for user canceled or errors
     if (status === 'User canceled') {
       setStatus('canceled');
@@ -46,10 +50,33 @@ const PaymentSuccess = () => {
     const verifyPayment = async () => {
       try {
         const result = await verifyKhaltiPayment(pidx);
-        
-        // Per Khalti docs, only "Completed" status should be treated as success
+
         if (result.status === 'Completed') {
           setStatus('success');
+    
+          const pendingOrder = JSON.parse(localStorage.getItem("pendingOrder"));
+    
+          if (!orderSavedRef.current) {
+            orderSavedRef.current = true;
+            try {
+              await axios.post("http://localhost:5000/api/orders", {
+                customer: pendingOrder.customerUsername || result.purchase_order_id || "Guest",
+                items: pendingOrder.items,
+                totalAmount: result.total_amount / 100,
+                paymentMethod: 'Khalti',
+                orderDate: new Date().toISOString(),
+                pidx: result.pidx
+              });
+          
+              await axios.delete("http://localhost:5000/api/cart/clear", {
+                withCredentials: true
+              });
+          
+            } catch (orderError) {
+              console.error("Failed to save order after payment:", orderError);
+            }
+          }
+          
           // Update payment details with verification result
           setPaymentDetails(prevDetails => ({
             ...prevDetails,

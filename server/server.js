@@ -14,6 +14,7 @@ const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
 
+
 // Import your Khalti payment utility functions
 const { initiatePayment, validatePaymentSuccess } = require('./utils/KhaltiPayment');
 
@@ -1024,7 +1025,9 @@ app.get("/api/orders", async (req, res) => {
 
 // Add a new order
 app.post('/api/orders', async (req, res) => {
-  const { customer, items, totalAmount, paymentMethod, orderDate } = req.body;
+  const { customer, items, totalAmount, paymentMethod, orderDate, pidx } = req.body;
+  console.log("🚀 Order received on backend:", req.body);
+
 
   if (!customer || !items || items.length === 0 || !paymentMethod) {
     return res.status(400).json({ message: 'Missing order details' });
@@ -1040,10 +1043,13 @@ app.post('/api/orders', async (req, res) => {
       .slice(0, 19)
       .replace('T', ' ');
 
-    await pool.query(
-      'INSERT INTO orders (customer, product_name, quantity, payment, status, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-      [customer, productNames, totalQty, paymentMethod, 'Pending', formattedDate]
-    );
+      await pool.query(
+        'INSERT INTO orders (customer, product_name, quantity, payment, status, created_at, payment_method, payment_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [customer, productNames, totalQty, paymentMethod, 'Pending', formattedDate, paymentMethod, pidx]
+      );
+      
+      
+      
 
     res.json({ success: true, message: 'Order saved' });
   } catch (err) {
@@ -1057,47 +1063,69 @@ app.post('/api/orders', async (req, res) => {
 
 
 
-
-// Update order status (Pending → Completed)
-app.put("/api/orders/:id", async (req, res) => {
+app.put('/api/orders/:id/status', async (req, res) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const orderId = req.params.id;
+    const { status, riderId } = req.body;
 
-    if (!status) {
-      return res.status(400).json({ message: "Order status is required" });
+    // ✅ Log the incoming request
+    console.log("🚚 Incoming update:", { orderId, status, riderId });
+
+    if (!status || !riderId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status and rider ID are required'
+      });
     }
 
-    // Get the order
-    const [[order]] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+    const [orders] = await pool.query(
+      'SELECT * FROM orders WHERE id = ? AND assigned_rider = ?',
+      [orderId, riderId]
+    );
+
+    if (orders.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Order not found or not assigned to this rider'
+      });
     }
 
-    // Only decrease stock if marking as Completed AND wasn't already completed
-    if (status === "Completed" && order.status !== "Completed") {
-      const items = order.product_name.split(','); // e.g., "Apple x 2, Banana x 1"
-      for (let item of items) {
-        const [name, qty] = item.split('x').map(s => s.trim());
-        const quantity = parseInt(qty);
-        if (!isNaN(quantity)) {
-          await pool.query(
-            "UPDATE products SET instock = GREATEST(instock - ?, 0) WHERE name = ?",
-            [quantity, name]
-          );
-        }
-      }
+    await pool.query(
+      'UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ? AND assigned_rider = ?',
+      [status, orderId, riderId]
+    );
+
+    if (status === 'Completed') {
+      await pool.query(
+        'UPDATE orders SET delivered_at = NOW() WHERE id = ?',
+        [orderId]
+      );
     }
 
-    // Update the order status
-    await pool.query("UPDATE orders SET status = ? WHERE id = ?", [status, id]);
+    if (status === 'Picked Up') {
+      await pool.query(
+        'UPDATE orders SET picked_up_at = NOW() WHERE id = ?',
+        [orderId]
+      );
+    }
 
-    res.json({ message: "Order status updated and stock adjusted if needed" });
+    res.json({
+      success: true,
+      message: `Order status updated to ${status}`
+    });
   } catch (error) {
-    console.error("Error updating order status:", error);
-    res.status(500).json({ message: "Server error" });
+    // ✅ Log the full error in terminal for debugging
+    console.error("❌ Error updating order status:", error);
+
+    // ✅ Return a helpful error message to the frontend
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Server error'
+    });
   }
 });
+
+
 
 
 // Delete an order
@@ -1304,12 +1332,56 @@ app.post('/api/payments/initiate', async (req, res) => {
 // Route to validate payment success
 app.post('/api/payments/validate', async (req, res) => {
   try {
-    const { pidx } = req.body; // Payment ID (pidx) to validate
-    const validationResult = await validatePaymentSuccess(pidx);
-    res.status(200).json(validationResult); // Return success status and details
+    const { pidx } = req.body;
+    const result = await validatePaymentSuccess(pidx);
+
+    // Find the order by pidx (stored as payment_reference)
+    const [orders] = await pool.query('SELECT * FROM orders WHERE payment_reference = ?', [pidx]);
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "Order not found for pidx" });
+    }
+
+    const order = orders[0];
+
+    // 1. Insert into payments table
+    await pool.query(
+      'INSERT INTO payments (order_id, pidx, transaction_id, amount, status, provider) VALUES (?, ?, ?, ?, ?, ?)',
+      [order.id, pidx, result.transaction_id, result.amount, result.status, 'Khalti']
+    );
+
+    // 2. Update orders table to mark payment as verified
+    await pool.query(
+      'UPDATE orders SET payment_verified = 1 WHERE id = ?',
+      [order.id]
+    );
+
+    res.status(200).json({ success: true, message: "Payment recorded and order updated." });
   } catch (error) {
     console.error("Payment validation failed:", error);
     res.status(500).json({ message: "Payment validation failed", error: error.message });
+  }
+});
+
+// Add this to server.js if not already present
+app.post('/api/khalti/verify', async (req, res) => {
+  const { pidx } = req.body;
+  if (!pidx) return res.status(400).json({ message: 'Missing pidx' });
+
+  try {
+    const response = await axios.post(
+      'https://dev.khalti.com/api/v2/epayment/lookup/',
+      { pidx },
+      {
+        headers: {
+          Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error("🔴 Khalti verify error:", error.response?.data || error.message);
+    res.status(500).json({ message: "Verification failed", error: error.message });
   }
 });
 

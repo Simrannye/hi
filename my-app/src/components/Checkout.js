@@ -51,105 +51,10 @@ const Checkout = () => {
     return 'ORD-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
   };
 
-  // // Handle Khalti payment
-  // const handlePayment = async () => {
-  //   if (cart.length === 0) {
-  //     setError("Your cart is empty!");
-  //     return;
-  //   }
-    
-  //   setIsProcessing(true);
-  //   setError(null);
-  //   setShowFallback(false);
-    
-  //   try {
-  //     // Convert total amount to paisa (1 NPR = 100 paisa)
-  //     const totalAmountPaisa = Math.round(totalAmount * 100);
-  
-  //     // Create product details array from cart items
-  //     const productDetails = cart.map(item => ({
-  //       identity: `PROD-${item.id}`,
-  //       name: item.name,
-  //       total_price: Math.round(item.price * item.quantity * 100), // Convert to paisa
-  //       quantity: item.quantity,
-  //       unit_price: Math.round(item.price * 100) // Convert to paisa
-  //     }));
-      
-  //     // Create amount breakdown
-  //     const subtotal = Math.round(totalAmount * 0.87 * 100); // 87% of total
-  //     const vat = Math.round(totalAmount * 0.13 * 100); // 13% VAT
-      
-  //     // Ensure the sum of breakdown exactly matches total (important per Khalti docs)
-  //     const amountBreakdown = [
-  //       { label: "Subtotal", amount: subtotal },
-  //       { label: "VAT (13%)", amount: totalAmountPaisa - subtotal }
-  //     ];
-  
-  //     // All required fields per Khalti docs
-  //     const paymentData = {
-  //       return_url: `${window.location.origin}/payment-success`,
-  //       website_url: window.location.origin,
-  //       amount: totalAmountPaisa,
-  //       purchase_order_id: generateOrderId(),
-  //       purchase_order_name: "GrabNGo Order",
-  //       customer_info: {
-  //         name: user.username,
-  //         email: user.email,
-  //         phone: user.phone
-  //       },
-  //       amount_breakdown: amountBreakdown,
-  //       product_details: productDetails
-  //     };
-      
-  //     // Initiate Khalti payment
-  //     const response = await initiateKhaltiPayment(paymentData);
-      
-  //     if (!response.payment_url) {
-  //       throw new Error("Invalid response from payment service");
-  //     }
-      
-  //     // Redirect to Khalti payment page
-  //     window.location.href = response.payment_url;
-      
-  //   } catch (err) {
-  //     console.error("Payment initiation failed:", err);
-  //     setError(`${err.message || 'Khalti payment service is currently unavailable. Please try again later or choose Cash on Delivery.'}`);
-  //     setShowFallback(true);
-  //     setIsProcessing(false);
-  //   }
-  // // };
 
-  // const initiatePayment = async () => {
-  //   try {
-  //     const response = await axios.post('http://localhost:5000/api/payments/initiate', {
-  //       userId: userId,
-  //       amount: amount,
-  //       purchaseOrderName: "Order #123",
-  //       returnUrl: "http://localhost:3000/paymentsuccess",
-  //       websiteUrl: "http://localhost:3000/"
-  //     });
-  //     console.log(response.data); // Handle the response from the backend
-  //   } catch (error) {
-  //     console.error("Error initiating payment:", error);
-  //   }
-  // };
-  // const validatePayment = async (pidx) => {
-  //   try {
-  //     const response = await axios.post('http://localhost:5000/api/payments/validate', {
-  //       pidx: pidx
-  //     });
-  //     console.log(response.data); // Handle the validated payment result
-  //   } catch (error) {
-  //     console.error("Error validating payment:", error);
-  //   }
-  // };
     
   const handleKhaltiPayment = async () => {
-    // Basic validation
-    // if (!user.email) {
-    //   setError("Please enter your email address");
-    //   return;
-    // }
+
   
     if (cart.length === 0) {
       setError("Your cart is empty");
@@ -163,23 +68,14 @@ const Checkout = () => {
   
       // Check if user is logged in
       const token = localStorage.getItem("token");
-      // if (!token) {
-      //   navigate("/login");
-      //   return;
-      // }
-  
-      // Prepare the items data
-      const itemsData = cart.map(item => ({
-        beatId: item._id || item.id, // fallback in case item.id is used instead
-        license: "Basic",
-        price: item.price
-      }));
+
+      const itemsData = cart;
   
       // Initiate payment through backend API
       const response = await axios.post("http://localhost:5000/api/payments/initiate", {
         amount: totalAmount,
         items: itemsData,
-        customerEmail: user.email
+        customerUsername: user.username
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -190,10 +86,11 @@ const Checkout = () => {
         // Store order data temporarily
         localStorage.setItem("pendingOrder", JSON.stringify({
           items: itemsData,
-          totalAmount: totalAmount,
-          customerEmail: user.email,
+          totalAmount,
+          customerUsername: user.username,
           pidx: response.data.pidx
         }));
+        
       
         // Redirect to Khalti payment page
         window.location.href = response.data.payment_url;

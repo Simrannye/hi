@@ -49,34 +49,39 @@ const RiderPanel = ({ riderId }) => {
 
   // Handle updating order status
   const updateOrderStatus = async (orderId, status) => {
+    const riderId = localStorage.getItem("riderId");
+
     try {
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          status, 
-          riderId 
+        credentials: "include", // 🔥 Important for sending cookies (session-based auth)
+        body: JSON.stringify({
+          status,
+          riderId
         }),
       });
-
-      if (!response.ok) throw new Error("Failed to update order status");
-
-      // Update local state
-      setOrders(prev => 
-        prev.map(order => 
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update order status");
+      }
+  
+      // ✅ Update local UI state
+      setOrders(prev =>
+        prev.map(order =>
           order.id === orderId ? { ...order, status } : order
         )
       );
-
-      // Show notification
+  
       setNotification({
         message: `Order #${orderId} has been marked as ${status}`,
         type: "success"
       });
-
-      // Clear notification after 3 seconds
+  
       setTimeout(() => setNotification(null), 3000);
     } catch (error) {
       console.error("Error updating order status:", error);
@@ -86,6 +91,7 @@ const RiderPanel = ({ riderId }) => {
       });
     }
   };
+  
 
   // Filter orders based on active tab
   const filteredOrders = orders.filter(order => {

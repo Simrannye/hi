@@ -30,6 +30,10 @@ const AdminPannel = ({ setUser }) => {
     fetchMessages();
     fetchRiders();
 
+    const interval = setInterval(fetchOrders, 30000);
+    return () => clearInterval(interval);
+  
+
   }, []);
   const [messages, setMessages] = useState([]);
 
@@ -687,7 +691,6 @@ const assignOrderToRider = async (orderId, riderId) => {
                 <th>Assigned Rider</th>
                 <th>Assign</th>
                 <th>Status</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -716,21 +719,6 @@ const assignOrderToRider = async (orderId, riderId) => {
                   <td className={(order.status || "Pending") === "Completed" ? "completed" : "pending"}>
                    {order.status || "Pending"}
                 </td>
-
-                  <td>
-                    <button
-                      className="admin-btn admin-complete-btn"
-                      onClick={() => updateOrderStatus(order.id, "Completed")}
-                    >
-                      Completed
-                    </button>
-                    <button
-                      className="admin-btn admin-pending-btn"
-                      onClick={() => updateOrderStatus(order.id, "Pending")}
-                    >
-                      Pending
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>

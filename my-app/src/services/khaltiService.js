@@ -49,14 +49,11 @@ export const initiateKhaltiPayment = async (paymentData) => {
 };
 
 export const verifyKhaltiPayment = async (pidx) => {
-  try {
-    const response = await axios.post(`${API_URL}/api/khalti/verify`, { pidx });
-    return response.data;
-  } catch (error) {
-    console.error('Error verifying Khalti payment:', error);
-    throw error;
-  }
-}; 
+  const response = await axios.post('http://localhost:5000/api/khalti/verify', { pidx });
+  return response.data;
+};
+
+
 
 
 
