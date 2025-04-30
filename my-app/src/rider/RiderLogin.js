@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { FaMotorcycle, FaLock } from "react-icons/fa";
 import "./Riderlogin.css";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
+
+
+
 
 const RiderLogin = ({ setRiderId }) => {
   const navigate = useNavigate();
@@ -28,6 +33,7 @@ const RiderLogin = ({ setRiderId }) => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(loginData),
       });
 
@@ -47,6 +53,9 @@ const RiderLogin = ({ setRiderId }) => {
       setLoading(false);
     }
   };
+
+
+  const [showPassword, setShowPassword] = useState(false); 
 
   return (
     <div className="rider-login-container">
@@ -72,20 +81,35 @@ const RiderLogin = ({ setRiderId }) => {
 </div>
 
 
-          <div className="form-group">
-            <label>Password</label>
-            <div className="password-input">
-              <input
-                type="password"
-                name="password"
-                value={loginData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                required
-              />
-              <FaLock />
-            </div>
-          </div>
+<div className="form-group">
+  <label>Password</label>
+  <div className="password-input" style={{ position: "relative" }}>
+    <input
+      type={showPassword ? "text" : "password"}
+      name="password"
+      value={loginData.password}
+      onChange={handleChange}
+      placeholder="Enter your password"
+      required
+      style={{ paddingRight: "40px" }}
+    />
+    <span
+      onClick={() => setShowPassword(!showPassword)}
+      style={{
+        position: "absolute",
+        right: "10px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        cursor: "pointer",
+        color: "#666"
+      }}
+    >
+      {showPassword ? <FaEyeSlash /> : <FaEye />}
+    </span>
+  </div>
+</div>
+
+
 
           <button 
             type="submit" 

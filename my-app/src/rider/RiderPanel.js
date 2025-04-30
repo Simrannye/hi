@@ -2,19 +2,25 @@ import React, { useState, useEffect } from "react";
 import { FaMotorcycle, FaBox, FaCheckCircle, FaMapMarkerAlt, FaPhoneAlt, FaMoneyBillWave, FaClipboardCheck } from "react-icons/fa";
 import "./Rider.css";
 
+import { useNavigate } from "react-router-dom";
+
 const RiderPanel = ({ riderId }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("pending");
   const [riderInfo, setRiderInfo] = useState(null);
   const [notification, setNotification] = useState(null);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     // Fetch rider info
     const fetchRiderInfo = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/riders/${riderId}`);
-        if (!response.ok) throw new Error("Failed to fetch rider info");
+        const response = await fetch(`http://localhost:5000/api/riders/${riderId}`, {
+          credentials: "include"
+        });
+                if (!response.ok) throw new Error("Failed to fetch rider info");
         const data = await response.json();
         setRiderInfo(data);
       } catch (error) {
@@ -26,8 +32,10 @@ const RiderPanel = ({ riderId }) => {
     const fetchRiderOrders = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:5000/api/riders/${riderId}/orders`);
-        if (!response.ok) throw new Error("Failed to fetch orders");
+        const response = await fetch(`http://localhost:5000/api/riders/${riderId}/orders`, {
+          credentials: "include"
+        });
+                if (!response.ok) throw new Error("Failed to fetch orders");
         const data = await response.json();
         setOrders(data);
       } catch (error) {
@@ -109,6 +117,26 @@ const RiderPanel = ({ riderId }) => {
     return <div className="loading">Loading rider orders...</div>;
   }
 
+
+   const handleLogout = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/riders/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+    
+        if (res.ok) {
+          navigate("/rider"); // Redirect to login
+        } else {
+          console.error("Logout failed");
+        }
+      } catch (err) {
+        console.error("Logout error:", err);
+      }
+    };
+
+
+
   return (
     <div className="rider-panel">
       {/* Rider Header */}
@@ -119,7 +147,10 @@ const RiderPanel = ({ riderId }) => {
         <div className="rider-info">
           <h2>Rider Dashboard</h2>
           {riderInfo && (
-            <p>Welcome, {riderInfo.name} | ID: {riderId}</p>
+            <p>Welcome, {riderInfo.name} | ID: {riderId},
+            <button onClick={handleLogout} className="rider-logout-btn">Logout</button>
+            </p>
+            
           )}
         </div>
       </div>

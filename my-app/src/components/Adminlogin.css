@@ -1,0 +1,203 @@
+/* AdminLogin.css - Specialized styling for admin login interface */
+
+:root {
+    --admin-primary: #2c3e50;
+    --admin-secondary: #3498db;
+    --admin-accent: #1abc9c;
+    --admin-alert: #e74c3c;
+    --admin-dark: #1e293b;
+    --admin-light: #ecf0f1;
+    --admin-radius: 6px;
+  }
+  
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  }
+  
+  .admin-auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2c3e50 0%, #1e293b 100%);
+    padding: 2rem;
+    box-sizing: border-box;
+  }
+  
+  .admin-content {
+    background-color: white;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+    /* margin-left: 20px;
+    margin-top: 300px; */
+  }
+  
+  .admin-content::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--admin-secondary), var(--admin-accent));
+  }
+  
+  .admin-shadow {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25), 0 8px 10px rgba(0, 0, 0, 0.15);
+  }
+  
+  .admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2.5rem 2rem;
+  }
+  
+  .admin-title {
+    color: var(--admin-primary);
+    font-size: 1.75rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    padding-bottom: 12px;
+    position: relative;
+  }
+  
+  .admin-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background-color: var(--admin-secondary);
+  }
+  
+  .admin-input {
+    padding: 0.875rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--admin-radius);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background-color: #f8fafc;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .admin-input:focus {
+    border-color: var(--admin-secondary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    background-color: white;
+  }
+  
+  .admin-button {
+    background: linear-gradient(90deg, var(--admin-secondary), var(--admin-accent));
+    color: white;
+    padding: 0.875rem 1rem;
+    border: none;
+    border-radius: var(--admin-radius);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .admin-button:hover {
+    background: linear-gradient(90deg, #2980b9, #16a085);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+  
+  .admin-button:active {
+    transform: translateY(1px);
+  }
+  
+  .admin-alert {
+    padding: 0.75rem 1rem;
+    border-radius: var(--admin-radius);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .admin-alert-danger {
+    background-color: #fef2f2;
+    color: var(--admin-alert);
+    border-left: 4px solid var(--admin-alert);
+  }
+  
+  .admin-brand-wrapper {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-top: 1rem;
+  }
+  
+  .admin-brand-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--admin-primary);
+    letter-spacing: 1px;
+  }
+  
+  .admin-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: var(--admin-dark);
+    color: var(--admin-light);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 10;
+  }
+  
+  .admin-secure-notice {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+  
+  @media screen and (max-width: 480px) {
+    .admin-auth-container {
+      padding: 1rem;
+    }
+    
+    .admin-content {
+      max-width: 100%;
+    }
+    
+    .admin-form {
+      padding: 2rem 1.5rem;
+    }
+  }
+  
+  @media screen and (max-height: 600px) {
+    .admin-auth-container {
+      align-items: flex-start;
+      padding-top: 2rem;
+    }
+  }

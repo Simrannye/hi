@@ -78,7 +78,7 @@ app.use(session({
   cookie: {
     maxAge: 86400000, // 24 hours
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production' // Use secure cookies in production
+    secure: false// Use secure cookies in production
   }
 }));
 
@@ -1426,6 +1426,15 @@ app.post('/api/riders/login', async (req, res) => {
       });
     }
 
+    // Save session info
+req.session.rider = {
+  id: rider.id,
+  name: rider.name,
+  phone: rider.phone,
+  address: rider.address
+};
+
+
     // Return rider info
     res.json({
       success: true,
@@ -1475,6 +1484,30 @@ app.get('/api/riders/:id', async (req, res) => {
     });
   }
 });
+
+
+app.get('/api/riders/status', (req, res) => {
+  console.log("🟢 Rider session check triggered");
+  if (req.session.rider) {
+    res.json({ authenticated: true, rider: req.session.rider });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+
+
+app.post('/api/riders/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).json({ message: "Logout failed" });
+    }
+    res.clearCookie('session_cookie_name'); // your session cookie key
+    res.json({ message: "Logout successful" });
+  });
+});
+
+
 
 // Get orders for a specific rider
 app.get('/api/riders/:id/orders', async (req, res) => {

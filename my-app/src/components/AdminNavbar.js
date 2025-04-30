@@ -21,7 +21,7 @@ const AdminNavbar = ({ activeTab, setActiveTab, setUser }) => {
   
       if (response.ok) {
         setUser(null);
-        navigate('/userauth', { replace: true });
+        navigate('/admin-login', { replace: true });
       } else {
         console.error('Logout failed');
         alert('Something went wrong. Try again.');

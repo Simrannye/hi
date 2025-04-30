@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserAuth.css';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 function UserAuth() {
     const [isActive, setIsActive] = useState(false);
@@ -34,7 +36,9 @@ function UserAuth() {
     const [isLoading, setIsLoading] = useState(false);
     const [registerSuccess, setRegisterSuccess] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState(false);
-
+    const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+    const [showLoginPassword, setShowLoginPassword] = useState(false);
+    
     const switchToRegister = () => {
         setIsActive(true);
         setLoginError('');
@@ -293,17 +297,32 @@ function UserAuth() {
                                     required
                                 />
                             </div>
-                            <div className='input-group mb-3'>
-                                <input 
-                                    type='password' 
-                                    name='password'
-                                    placeholder='Password' 
-                                    className='form-control'
-                                    value={registerData.password}
-                                    onChange={handleRegisterChange}
-                                    required
-                                />
-                            </div>
+                            <div className="input-group mb-3 position-relative">
+  <input 
+    type={showRegisterPassword ? "text" : "password"} 
+    name="password"
+    placeholder="Password"
+    className="form-control"
+    value={registerData.password}
+    onChange={handleRegisterChange}
+    required
+    style={{ paddingRight: "40px" }}
+  />
+  <span
+    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+    style={{
+      position: "absolute",
+      right: "10px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      color: "#999"
+    }}
+  >
+    {showRegisterPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
+
                             
                             <div className='input-group mb-3 justify-content-center'>
                                 <button 
@@ -386,17 +405,32 @@ function UserAuth() {
                                 required
                             />
                         </div>
-                        <div className='input-group mb-3'>
-                            <input 
-                                type='password' 
-                                name='password'
-                                placeholder='Password' 
-                                className='form-control'
-                                value={loginData.password}
-                                onChange={handleLoginChange}
-                                required
-                            />
-                        </div>
+                        <div className="input-group mb-3 position-relative">
+  <input 
+    type={showLoginPassword ? "text" : "password"} 
+    name="password"
+    placeholder="Password" 
+    className="form-control"
+    value={loginData.password}
+    onChange={handleLoginChange}
+    required
+    style={{ paddingRight: "40px" }}
+  />
+  <span
+    onClick={() => setShowLoginPassword(!showLoginPassword)}
+    style={{
+      position: "absolute",
+      right: "10px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      color: "#999"
+    }}
+  >
+    {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
+
                         <div className='input-group mb-5 d-flex justify-content-between'>
                             <div className='forgot'>
                                 <small><a href='/forgot'>Forgot Password?</a></small>

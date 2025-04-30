@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserAuth.css';
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
 
 function ForgotPassword() {
     const [isLoading, setIsLoading] = useState(false);
@@ -9,6 +11,9 @@ function ForgotPassword() {
     const [success, setSuccess] = useState('');
     const [step, setStep] = useState('request'); // 'request', 'verification', 'reset'
     const navigate = useNavigate();
+    const [showNewPassword, setShowNewPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     
     // Verification and reset state
     const [verificationData, setVerificationData] = useState({
@@ -324,28 +329,58 @@ function ForgotPassword() {
                                 {success && <div className="alert alert-success">{success}</div>}
                             </div>
                             <p className="text-center mb-4">Enter your new password.</p>
-                            <div className="input-group mb-3">
-                                <input 
-                                    type="password" 
-                                    name="password"
-                                    placeholder="New Password" 
-                                    className="form-control"
-                                    value={newPassword.password}
-                                    onChange={handlePasswordChange}
-                                    required
-                                />
-                            </div>
-                            <div className="input-group mb-3">
-                                <input 
-                                    type="password" 
-                                    name="confirmPassword"
-                                    placeholder="Confirm Password" 
-                                    className="form-control"
-                                    value={newPassword.confirmPassword}
-                                    onChange={handlePasswordChange}
-                                    required
-                                />
-                            </div>
+                            <div className="input-group mb-3 position-relative">
+  <input 
+    type={showNewPassword ? "text" : "password"} 
+    name="password"
+    placeholder="New Password" 
+    className="form-control"
+    value={newPassword.password}
+    onChange={handlePasswordChange}
+    required
+    style={{ paddingRight: "40px" }}
+  />
+  <span
+    onClick={() => setShowNewPassword(!showNewPassword)}
+    style={{
+      position: "absolute",
+      right: "10px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      color: "#999"
+    }}
+  >
+    {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
+
+<div className="input-group mb-3 position-relative">
+  <input 
+    type={showConfirmPassword ? "text" : "password"} 
+    name="confirmPassword"
+    placeholder="Confirm Password" 
+    className="form-control"
+    value={newPassword.confirmPassword}
+    onChange={handlePasswordChange}
+    required
+    style={{ paddingRight: "40px" }}
+  />
+  <span
+    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+    style={{
+      position: "absolute",
+      right: "10px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      color: "#999"
+    }}
+  >
+    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
+
                             
                             <div className="input-group mb-3 justify-content-center">
                                 <button 

@@ -3,9 +3,12 @@ import axios from 'axios';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import "./Products.css";
 import Header from "./Header";
+import Footer from "./Footer";
+
 
 const Products = () => {
   // State variables
+  const [userLocation, setUserLocation] = useState(null);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [notification, setNotification] = useState('');
@@ -19,62 +22,127 @@ const Products = () => {
   const [searchQuery, setSearchQuery] = useState(''); // New state for search
   const [location, setLocation] = useState("all");
   const locationSearch = useLocation(); // for reading URL params
+  const [manualOverride, setManualOverride] = useState(null);
+
   
 
   const navigate = useNavigate();
 
-  // Fetch products from database
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const url = location === "all"
-          ? "http://localhost:5000/api/products"
-          : `http://localhost:5000/api/products?location=${location}`;
-    
-        const response = await axios.get(url);
-        const productsWithQuantity = response.data.map(product => ({
-          ...product,
-          quantity: 0,
-          inStock: product.instock > 0,
-        }));
-    
-        setProducts(productsWithQuantity);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to load products. Please try again later.');
-        setLoading(false);
+
+
+// fetch location
+useEffect(() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log("📍 Current location:", latitude, longitude);
+
+        // Step 2: Match to nearest area
+        const hubs = [
+          { name: "Thamel", lat: 27.7149, lon: 85.3123 },
+          { name: "Budhanilkantha", lat: 27.7930, lon: 85.3635 },
+          { name: "Naxal", lat: 27.7172, lon: 85.3266 }
+        ];
+
+        const getDistance = (lat1, lon1, lat2, lon2) => {
+          const toRad = (val) => val * Math.PI / 180;
+          const R = 6371; // km
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lon2 - lon1);
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) *
+              Math.cos(toRad(lat2)) *
+              Math.sin(dLon / 2) ** 2;
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return R * c;
+        };
+
+        const nearest = hubs.reduce((prev, curr) => {
+          const prevDist = getDistance(latitude, longitude, prev.lat, prev.lon);
+          const currDist = getDistance(latitude, longitude, curr.lat, curr.lon);
+          return currDist < prevDist ? curr : prev;
+        });
+
+        console.log("🧭 Nearest hub:", nearest.name);
+        if (!manualOverride) {
+          setUserLocation(nearest.name);
+        }
+        
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
       }
-    };
-    
+    );
+  }
+}, []);
+
   
-    const fetchCartIfAuthenticated = async () => {
-      try {
-        const authRes = await axios.get('http://localhost:5000/api/auth/status', {
+// fetch products
+useEffect(() => {
+  if (!userLocation) return; // prevent running if null
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const url = userLocation === "all"
+        ? "http://localhost:5000/api/products"
+        : `http://localhost:5000/api/products?location=${userLocation}`;
+      const response = await axios.get(url);
+      const productsWithQuantity = response.data.map(product => ({
+        ...product,
+        quantity: 0,
+        inStock: product.instock > 0,
+      }));
+      setProducts(productsWithQuantity);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Failed to load products. Please try again later.');
+      setLoading(false);
+    }
+  };
+
+  fetchProducts();
+}, [userLocation]);
+
+
+
+
+//authenticate cart
+useEffect(() => {
+  const fetchCartIfAuthenticated = async () => {
+    try {
+      const authRes = await axios.get('http://localhost:5000/api/auth/status', {
+        withCredentials: true
+      });
+
+      if (authRes.data.authenticated) {
+        const cartRes = await axios.get('http://localhost:5000/api/cart', {
           withCredentials: true
         });
-  
-        if (authRes.data.authenticated) {
-          const cartRes = await axios.get('http://localhost:5000/api/cart', {
-            withCredentials: true
-          });
-          setCart(cartRes.data);
-        }
-      } catch (err) {
-        console.error("Error checking auth or loading cart:", err);
+        setCart(cartRes.data);
       }
-    };
-  
-    fetchProducts();
-    fetchCartIfAuthenticated();
-    
-    // Check for search query in URL params
-    const params = new URLSearchParams(locationSearch.search);
-    if (params.get('search')) {
-      setSearchQuery(params.get('search'));
+    } catch (err) {
+      console.error("Error checking auth or loading cart:", err);
     }
-  }, [location, locationSearch.search]);
+  };
+
+  fetchCartIfAuthenticated();
+}, []);
+
+
+//search query
+
+useEffect(() => {
+  const params = new URLSearchParams(locationSearch.search);
+  if (params.get('search')) {
+    setSearchQuery(params.get('search'));
+  }
+}, [locationSearch.search]);
+
+
 
   // When search query changes, find matching product and show modal
   useEffect(() => {
@@ -359,20 +427,22 @@ const Products = () => {
             </button>
           </div>
         )}
-<div className="location-selector">
-  <label htmlFor="location">Select Location:</label>
+
+<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+  <h3>🧭 Showing products near: {userLocation}</h3>
   <select
-    id="location"
-    value={location}
-    onChange={(e) => setLocation(e.target.value)}
-    className="location-dropdown"
+    value={userLocation}
+    onChange={(e) => {
+      setManualOverride(true);
+      setUserLocation(e.target.value);
+    }}
   >
-  <option value="all">Select Location</option>
-  <option value="Budhanilkantha">Budhanilkantha</option>
-  <option value="Thamel">Thamel</option>
-  <option value="Naxal">Naxal</option>
+    <option value="Thamel">Thamel</option>
+    <option value="Budhanilkantha">Budhanilkantha</option>
+    <option value="Naxal">Naxal</option>
   </select>
 </div>
+
 
         {/* Filter Section */}
         <div className="filter-section">
@@ -582,6 +652,7 @@ const Products = () => {
           </div>
         </div>
       )}
+      <Footer/>
     </>
   );
 };

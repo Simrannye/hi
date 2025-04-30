@@ -3,6 +3,7 @@ import axios from "axios";
 import "../App.css"; 
 import "./UserOrders.css";
 import Header from "./Header";
+import Footer from "./Footer";
 
 
 const UserOrders = ({ user }) => {
@@ -57,6 +58,7 @@ const UserOrders = ({ user }) => {
         </table>
       )}
     </div>
+    <Footer/>
     </>
   );
 };

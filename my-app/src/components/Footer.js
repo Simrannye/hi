@@ -1,18 +1,17 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import "../App.css";
-
+import React from "react";
+import "./Footer.css";
 
 const Footer = () => {
   return (
-    
-    
-        <footer className="footer">
-          <div className="credit"> &copy; <span>GrabnGo</span> | All Rights Reserved </div>
-        </footer>
-      );
+    <footer className="footer">
+      <p>© {new Date().getFullYear()} GrabNGo. All rights reserved.</p>
+      <div className="footer-links">
+        <a href="/contact">Contact</a>
+        <a href="/products">Products</a>
+        {/* <a href="/userauth">Login</a> */}
+      </div>
+    </footer>
+  );
 };
-
-
 
 export default Footer;

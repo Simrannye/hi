@@ -7,6 +7,8 @@ import veggie from "./veggie.jpeg";
 import dairy from "./dairy.jpg";
 import bakery from "./bakery.jpg";
 import review from "./review.jpeg";
+import Footer from "./Footer";
+
 
 const Home = () => {
   return (
@@ -148,6 +150,7 @@ const Home = () => {
           </div>
         </div>
       </section>
+      <Footer />
     </>
   );
 };

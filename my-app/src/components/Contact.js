@@ -3,6 +3,8 @@ import Header from "./Header";
 import contactImg from "./contact.avif";
 import React, { useState } from 'react';
 import axios from 'axios';
+import Footer from "./Footer";
+
 
 
 
@@ -65,6 +67,7 @@ const Contact = () => {
           </div>
         </div>
       </section>
+      <Footer/>
     </>
   );
 };

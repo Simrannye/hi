@@ -18,6 +18,7 @@ import UserOrders from './components/UserOrders';
 import AdminRoute from './components/AdminRoute';
 import RiderLogin from "./rider/RiderLogin";
 import RiderPanel from "./rider/RiderPanel";
+import AdminLogin from "./components/AdminLogin";
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 function App() {
@@ -66,10 +67,21 @@ function App() {
 
 
   useEffect(() => {
-    const savedRiderId = localStorage.getItem("riderId");
-    if (savedRiderId) {
-      setRiderId(savedRiderId);
-    }
+    const fetchRiderSession = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/riders/status", { withCredentials: true });
+        if (res.data.authenticated) {
+          setRiderId(res.data.rider.id);
+        } else {
+          setRiderId(null);
+        }
+      } catch (err) {
+        console.error("Failed to check rider session:", err);
+        setRiderId(null);
+      }
+    };
+  
+    fetchRiderSession();
   }, []);
 
   const AdminPannelWrapper = () => <AdminPannel setUser={setUser} />;
@@ -81,8 +93,8 @@ function App() {
       <div className="App">
         <main>
           <Routes>
-            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
             <Route path="/offers" element={<ProtectedRoute><Offers /></ProtectedRoute>} />
             <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -106,7 +118,8 @@ function App() {
 <Route path="/rider-dashboard" element={
   riderId ? <RiderPanel riderId={riderId} /> : <Navigate to="/rider" />
 } />
-            <Route path="/rider" element={<RiderLogin setRiderId={setRiderId} />} />
+<Route path="/admin-login" element={<AdminLogin />} />
+<Route path="/rider" element={<RiderLogin setRiderId={setRiderId} />} />
           </Routes>
         </main>
       </div>
