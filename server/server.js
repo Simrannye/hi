@@ -18,9 +18,11 @@ require("dotenv").config();
 // Import your Khalti payment utility functions
 const { initiatePayment, validatePaymentSuccess } = require('./utils/KhaltiPayment');
 
+
+
+
 // Middleware to parse JSON bodies
 app.use(express.json());
-
 
 // Set up upload folder
 const storage = multer.diskStorage({
@@ -944,6 +946,27 @@ app.get('/api/cart', isAuthenticated, async (req, res) => {
   }
 });
 
+// Remove a single cart item
+app.delete('/api/cart/:product_id', isAuthenticated, async (req, res) => {
+  const user_id = req.session.user.id;
+  const { product_id } = req.params;
+
+  try {
+    const [result] = await pool.query(
+      'DELETE FROM cart_items WHERE user_id = ? AND product_id = ?',
+      [user_id, product_id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Cart item not found' });
+    }
+
+    res.json({ success: true, message: 'Item removed from cart' });
+  } catch (error) {
+    console.error('Error removing cart item:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 
 
 app.delete('/api/cart/clear', isAuthenticated, async (req, res) => {
@@ -1732,6 +1755,48 @@ app.put('/api/riders/:id/profile', async (req, res) => {
     });
   }
 });
+
+
+
+//reccomendation
+
+app.get('/api/recommendations/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+
+    // Get user's most ordered category
+    const [history] = await pool.query(`
+      SELECT p.category, COUNT(*) as count
+      FROM orders o
+      JOIN products p ON o.product_name LIKE CONCAT('%', p.name, '%')
+      WHERE o.customer = ?
+      GROUP BY p.category
+      ORDER BY count DESC
+      LIMIT 1
+    `, [username]);
+
+    if (history.length === 0) {
+      return res.json({ recommendations: [] });
+    }
+
+    const favoriteCategory = history[0].category;
+
+    // Recommend products from that category
+    const [recommendations] = await pool.query(`
+      SELECT * FROM products 
+      WHERE category = ? 
+      ORDER BY RAND()
+      LIMIT 5
+    `, [favoriteCategory]);
+
+    res.json({ recommendations });
+  } catch (err) {
+    console.error('Recommendation error:', err);
+    res.status(500).json({ error: 'Failed to fetch recommendations' });
+  }
+});
+
+
 
 
 app.listen(5000, () => {

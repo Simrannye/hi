@@ -20,6 +20,10 @@ import RiderLogin from "./rider/RiderLogin";
 import RiderPanel from "./rider/RiderPanel";
 import AdminLogin from "./components/AdminLogin";
 import Terms from "./components/Terms";
+import { UserProvider } from "./components/context/UserContext";
+import { CartProvider } from "./components/CartContext";
+import Header from "./components/Header";
+
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;
@@ -27,6 +31,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [riderId, setRiderId] = useState(null);
+  
 
   // 1. Check if user is logged in
   useEffect(() => {
@@ -91,8 +96,11 @@ function App() {
   
 
   return (
+    <CartProvider>
+    <UserProvider value={{ user, setUser }}>
     <Router>
       <div className="App">
+
         <main>
           <Routes>
           <Route path="/" element={<Home />} />
@@ -101,8 +109,17 @@ function App() {
             <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/UserSetting" element={<ProtectedRoute><UserSetting /></ProtectedRoute>} />
-            <Route path="/Products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-            <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+            <Route path="/products" element={
+  <ProtectedRoute>
+    <Products cart={cart} setCart={setCart} />
+  </ProtectedRoute>
+} />
+
+<Route path="/checkout" element={
+  <ProtectedRoute>
+    <Checkout cart={cart} setCart={setCart} />
+  </ProtectedRoute>
+} />
             {/* <Route path="/AdminPannel" element={<ProtectedRoute><AdminPannel /></ProtectedRoute>} /> */}
             <Route path="/orders" element={<ProtectedRoute><UserOrders user={user} /></ProtectedRoute>} />
             <Route 
@@ -127,6 +144,8 @@ function App() {
         </main>
       </div>
     </Router>
+    </UserProvider>
+    </CartProvider>
   );
 }
 

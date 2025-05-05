@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import { verifyKhaltiPayment } from '../services/khaltiService';
 import Header from './Header';
+import { useCart } from './CartContext';
 import "./PaymentSucess.css";
 import axios from 'axios';
-
 
 const PaymentSuccess = () => {
   const location = useLocation();
@@ -14,7 +13,7 @@ const PaymentSuccess = () => {
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [error, setError] = useState(null);
   const orderSavedRef = useRef(false);
-
+  const { clearCart, fetchCartFromBackend } = useCart();
   
   useEffect(() => {
     // Extract query parameters from URL
@@ -25,6 +24,7 @@ const PaymentSuccess = () => {
     const amount = params.get('amount');
     const purchaseOrderId = params.get('purchase_order_id');
     console.log("🔍 PIDX:", pidx);
+    
     // Early check for user canceled or errors
     if (status === 'User canceled') {
       setStatus('canceled');
@@ -59,6 +59,7 @@ const PaymentSuccess = () => {
           if (!orderSavedRef.current) {
             orderSavedRef.current = true;
             try {
+              // First, save the order to the database
               await axios.post("http://localhost:5000/api/orders", {
                 customer: pendingOrder.customerUsername || result.purchase_order_id || "Guest",
                 items: pendingOrder.items,
@@ -67,10 +68,32 @@ const PaymentSuccess = () => {
                 orderDate: new Date().toISOString(),
                 pidx: result.pidx
               });
-          
-              await axios.delete("http://localhost:5000/api/cart/clear", {
-                withCredentials: true
-              });
+              
+              console.log("Order saved successfully");
+              
+              // Clear the cart in backend first
+              try {
+                await axios.delete("http://localhost:5000/api/cart/clear", {
+                  withCredentials: true
+                });
+                console.log("Backend cart cleared successfully");
+              } catch (clearError) {
+                console.error("Failed to clear backend cart:", clearError);
+              }
+              
+              // Then clear the cart in frontend
+              try {
+                clearCart();
+                console.log("Frontend cart cleared successfully");
+              } catch (clearError) {
+                console.error("Failed to clear frontend cart:", clearError);
+              }
+              
+              // Remove the pending order from localStorage
+              localStorage.removeItem("pendingOrder");
+              
+              // Do NOT fetch cart from backend here as it might re-populate the cart
+              // fetchCartFromBackend();
           
             } catch (orderError) {
               console.error("Failed to save order after payment:", orderError);
@@ -105,10 +128,16 @@ const PaymentSuccess = () => {
     // Always verify the payment status regardless of the redirect status
     // This follows the Khalti docs recommendation to always use lookup API
     verifyPayment();
-  }, [location]);
-
+  }, [location, clearCart]);
 
   const handleContinueShopping = () => {
+    // Double-check to make sure cart is cleared before navigating away
+    try {
+      clearCart();
+    } catch (e) {
+      console.error("Final attempt to clear cart failed:", e);
+    }
+    
     navigate('/');
   };
 
@@ -179,4 +208,4 @@ const PaymentSuccess = () => {
   );
 };
 
-export default PaymentSuccess; 
+export default PaymentSuccess;

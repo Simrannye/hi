@@ -1,25 +1,23 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
-import Header from "./Header"; 
+import Header from "./Header";
 import './Checkout.css';
 import cartImage from "./cart.jpg";
-// import { initiateKhaltiPayment } from '../services/khaltiService';
-
-
-
-
+import { useCart } from './CartContext'; // ✅ use CartContext
 
 const Checkout = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
-  const [showFallback, setShowFallback] = useState(false);
   const [user, setUser] = useState({ username: 'Guest', email: '', phone: '' });
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [processingState, setProcessingState] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+
+  const { cartItems: cart, clearCart } = useCart(); // ✅ grab cart and clearCart from context
+
+  const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+  const subtotal = (totalAmount * 0.87).toFixed(2);
+  const vat = (totalAmount * 0.13).toFixed(2);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -31,7 +29,7 @@ const Checkout = () => {
           setUser({
             username: res.data.user.username,
             email: res.data.user.email,
-            phone: res.data.user.phone || '9800000000' // fallback
+            phone: res.data.user.phone || '9800000000'
           });
         }
       } catch (err) {
@@ -42,73 +40,50 @@ const Checkout = () => {
     fetchUser();
   }, []);
 
-  // Get cart items from location state
-  const cart = location.state?.cart || [];
-  const totalAmount = location.state?.totalAmount || 0;
-  
-  // Generate a random purchase order ID
   const generateOrderId = () => {
     return 'ORD-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
   };
 
-
-    
   const handleKhaltiPayment = async () => {
-
-  
     if (cart.length === 0) {
       setError("Your cart is empty");
       return;
     }
-  
+
     try {
-      setPaymentProcessing(true);
-      setProcessingState('loading');
+      setIsProcessing(true);
       setError(null);
-  
-      // Check if user is logged in
+
       const token = localStorage.getItem("token");
 
-      const itemsData = cart;
-  
-      // Initiate payment through backend API
       const response = await axios.post("http://localhost:5000/api/payments/initiate", {
         amount: totalAmount,
-        items: itemsData,
+        items: cart,
         customerUsername: user.username
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
-      console.log("Payment initiation response:", response.data);
-  
+
       if (response.data.payment_url) {
-        // Store order data temporarily
         localStorage.setItem("pendingOrder", JSON.stringify({
-          items: itemsData,
+          items: cart,
           totalAmount,
           customerUsername: user.username,
           pidx: response.data.pidx
         }));
-        
-      
-        // Redirect to Khalti payment page
+
         window.location.href = response.data.payment_url;
       } else {
         setError("Failed to initialize payment. Please try again.");
-        setPaymentProcessing(false);
-        setProcessingState('error');
-            }
-  
+        setIsProcessing(false);
+      }
     } catch (error) {
       console.error("Checkout error:", error);
       setError(error.response?.data?.message || "Payment failed. Please try again.");
-      setPaymentProcessing(false);
-      setProcessingState('error');
+      setIsProcessing(false);
     }
   };
-  
-  // Handle Cash on Delivery
+
   const handleCOD = async () => {
     try {
       const orderDetails = {
@@ -118,19 +93,16 @@ const Checkout = () => {
         paymentMethod: 'COD',
         orderDate: new Date().toISOString()
       };
-  
-      console.log("Sending order details:", orderDetails);
-  
+
       const res = await axios.post('http://localhost:5000/api/orders', orderDetails, {
         withCredentials: true
       });
-  
-      // Clear cart from DB
+
       await axios.delete('http://localhost:5000/api/cart/clear', {
         withCredentials: true
       });
-  
-      console.log("Order response:", res.data);
+
+      clearCart(); // ✅ also clear frontend cart
       alert("Order placed successfully with Cash on Delivery!");
       navigate("/");
     } catch (error) {
@@ -139,16 +111,11 @@ const Checkout = () => {
     }
   };
 
-  // Calculate the breakdown for display purposes
-  const subtotal = totalAmount ? (totalAmount * 0.87).toFixed(2) : 0;
-  const vat = totalAmount ? (totalAmount * 0.13).toFixed(2) : 0;
-
   return (
     <>
       <Header />
       <div className="checkout-container">
         <h2>Checkout</h2>
-
         <img src={cartImage} alt="Cart" className="cart-image" />
 
         <div className="checkout-items">
@@ -162,7 +129,7 @@ const Checkout = () => {
                   <span>NPR {(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
-              
+
               <div className="checkout-summary">
                 <div className="summary-item">
                   <span>Subtotal:</span>
@@ -187,26 +154,26 @@ const Checkout = () => {
 
         <div className="payment-options">
           {!showFallback && (
-            <button 
-              className="pay-button" 
-              onClick={handleKhaltiPayment} 
+            <button
+              className="pay-button"
+              onClick={handleKhaltiPayment}
               disabled={isProcessing || cart.length === 0}
             >
               {isProcessing ? "Processing..." : "Pay with Khalti"}
             </button>
           )}
 
-          <button 
-            className="cod-button" 
-            onClick={handleCOD} 
+          <button
+            className="cod-button"
+            onClick={handleCOD}
             disabled={isProcessing || cart.length === 0}
           >
             Cash on Delivery
           </button>
-          
+
           {showFallback && (
-            <button 
-              className="retry-button" 
+            <button
+              className="retry-button"
               onClick={() => {
                 setShowFallback(false);
                 setError(null);
@@ -216,7 +183,7 @@ const Checkout = () => {
             </button>
           )}
         </div>
-        
+
         {isProcessing && (
           <div className="processing-message">
             <p>Processing your payment. Please wait...</p>
@@ -227,4 +194,4 @@ const Checkout = () => {
   );
 };
 
-export default Checkout; 
+export default Checkout;

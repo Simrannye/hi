@@ -4,384 +4,204 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import "./Products.css";
 import Header from "./Header";
 import Footer from "./Footer";
-
+import { useCart } from './CartContext';
 
 const Products = () => {
-  // State variables
   const [userLocation, setUserLocation] = useState(null);
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
   const [notification, setNotification] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null); // product to show in popup
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // New state for search
-  const [location, setLocation] = useState("all");
-  const locationSearch = useLocation(); // for reading URL params
+  const [searchQuery, setSearchQuery] = useState('');
   const [manualOverride, setManualOverride] = useState(null);
 
-  
-
+  const { cartItems, addToCart, removeFromCart, getCartTotal } = useCart();
+  const location = useLocation();
   const navigate = useNavigate();
 
+  // Handle cart open state from location
+  useEffect(() => {
+    if (location.state && location.state.openCart) {
+      setIsCartOpen(true);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
 
+  // Get user location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const hubs = [
+            { name: "Thamel", lat: 27.7149, lon: 85.3123 },
+            { name: "Budhanilkantha", lat: 27.793, lon: 85.3635 },
+            { name: "Naxal", lat: 27.7172, lon: 85.3266 },
+          ];
 
-// fetch location
-useEffect(() => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        console.log("📍 Current location:", latitude, longitude);
-
-        // Step 2: Match to nearest area
-        const hubs = [
-          { name: "Thamel", lat: 27.7149, lon: 85.3123 },
-          { name: "Budhanilkantha", lat: 27.7930, lon: 85.3635 },
-          { name: "Naxal", lat: 27.7172, lon: 85.3266 }
-        ];
-
-        const getDistance = (lat1, lon1, lat2, lon2) => {
-          const toRad = (val) => val * Math.PI / 180;
-          const R = 6371; // km
-          const dLat = toRad(lat2 - lat1);
-          const dLon = toRad(lon2 - lon1);
-          const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(lat1)) *
-              Math.cos(toRad(lat2)) *
+          const getDistance = (lat1, lon1, lat2, lon2) => {
+            const toRad = (val) => val * Math.PI / 180;
+            const R = 6371;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a =
+              Math.sin(dLat / 2) ** 2 +
+              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
               Math.sin(dLon / 2) ** 2;
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          return R * c;
-        };
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+          };
 
-        const nearest = hubs.reduce((prev, curr) => {
-          const prevDist = getDistance(latitude, longitude, prev.lat, prev.lon);
-          const currDist = getDistance(latitude, longitude, curr.lat, curr.lon);
-          return currDist < prevDist ? curr : prev;
-        });
+          const nearest = hubs.reduce((prev, curr) => {
+            const prevDist = getDistance(latitude, longitude, prev.lat, prev.lon);
+            const currDist = getDistance(latitude, longitude, curr.lat, curr.lon);
+            return currDist < prevDist ? curr : prev;
+          });
 
-        console.log("🧭 Nearest hub:", nearest.name);
-        if (!manualOverride) {
-          setUserLocation(nearest.name);
-        }
-        
-      },
-      (error) => {
-        console.error("Geolocation error:", error);
-      }
-    );
-  }
-}, []);
-
-  
-// fetch products
-useEffect(() => {
-  if (!userLocation) return; // prevent running if null
-
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const url = userLocation === "all"
-        ? "http://localhost:5000/api/products"
-        : `http://localhost:5000/api/products?location=${userLocation}`;
-      const response = await axios.get(url);
-      const productsWithQuantity = response.data.map(product => ({
-        ...product,
-        quantity: 0,
-        inStock: product.instock > 0,
-      }));
-      setProducts(productsWithQuantity);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching products:', err);
-      setError('Failed to load products. Please try again later.');
-      setLoading(false);
+          if (!manualOverride) setUserLocation(nearest.name);
+        },
+        (error) => console.error("Geolocation error:", error)
+      );
     }
-  };
+  }, [manualOverride]);
 
-  fetchProducts();
-}, [userLocation]);
-
-
-
-
-//authenticate cart
-useEffect(() => {
-  const fetchCartIfAuthenticated = async () => {
-    try {
-      const authRes = await axios.get('http://localhost:5000/api/auth/status', {
-        withCredentials: true
-      });
-
-      if (authRes.data.authenticated) {
-        const cartRes = await axios.get('http://localhost:5000/api/cart', {
-          withCredentials: true
-        });
-        setCart(cartRes.data);
+  // Fetch products when user location is determined
+  useEffect(() => {
+    if (!userLocation) return;
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const url = userLocation === "all"
+          ? "http://localhost:5000/api/products"
+          : `http://localhost:5000/api/products?location=${userLocation}`;
+        const res = await axios.get(url);
+        setProducts(res.data.map(p => ({ ...p, quantity: 0, inStock: p.instock > 0 })));
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load products. Please try again later.");
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error checking auth or loading cart:", err);
+    };
+    fetchProducts();
+  }, [userLocation]);
+
+  // Handle search query from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+      // Scroll to top when search changes
+      window.scrollTo(0, 0);
     }
-  };
+  }, [location.search]);
 
-  fetchCartIfAuthenticated();
-}, []);
-
-
-//search query
-
-useEffect(() => {
-  const params = new URLSearchParams(locationSearch.search);
-  if (params.get('search')) {
-    setSearchQuery(params.get('search'));
-  }
-}, [locationSearch.search]);
-
-
-
-  // When search query changes, find matching product and show modal
+  // Process search results and find exact matches
   useEffect(() => {
     if (searchQuery && products.length > 0) {
-      // First look for an exact match
-      const exactMatch = products.find(
-        product => product.name.toLowerCase() === searchQuery.toLowerCase()
+      const exactMatch = products.find(p => 
+        p.name.toLowerCase() === searchQuery.toLowerCase()
       );
       
       if (exactMatch) {
-        // If exact match found, show the product details modal
+        // Set the selected product and open modal
+        console.log("Found exact match for search:", exactMatch.name);
         setSelectedProduct(exactMatch);
         setShowModal(true);
       }
       
-      // Also filter the products list
-      const matches = products.filter(product => 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      // Filter products that match the search query
+      const matches = products.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
+      
       setFilteredProducts(matches);
-    } else if (activeCategory === 'all') {
-      setFilteredProducts(products);
     } else {
-      setFilteredProducts(products.filter(product => product.category === activeCategory));
+      // If no search query, filter by category
+      setFilteredProducts(activeCategory === 'all'
+        ? products
+        : products.filter(p => p.category === activeCategory));
     }
-  }, [searchQuery, products, activeCategory]);
+  }, [searchQuery, products]);
 
-  // Filter products when category changes
+  // Update filtered products when category changes
   useEffect(() => {
     if (!searchQuery) {
-      if (activeCategory === 'all') {
-        setFilteredProducts(products);
-      } else {
-        setFilteredProducts(products.filter(product => product.category === activeCategory));
-      }
+      setFilteredProducts(activeCategory === 'all'
+        ? products
+        : products.filter(p => p.category === activeCategory));
     }
   }, [activeCategory, products, searchQuery]);
 
-  // Handle quantity increase
   const increaseQuantity = (id) => {
-    setProducts(prevProducts =>
-      prevProducts.map(product =>
-        product.id === id
-          ? {
-              ...product,
-              quantity: product.quantity < product.instock
-                ? product.quantity + 1
-                : product.quantity // prevent exceeding
-            }
-          : product
-      )
-    );
-    
-    // Also update the selected product if it's the same one
-    if (selectedProduct && selectedProduct.id === id) {
-      setSelectedProduct(prev => ({
-        ...prev,
-        quantity: prev.quantity < prev.instock ? prev.quantity + 1 : prev.quantity
-      }));
+    setProducts(prev => prev.map(p =>
+      p.id === id ? { ...p, quantity: Math.min(p.quantity + 1, p.instock) } : p
+    ));
+    if (selectedProduct?.id === id) {
+      setSelectedProduct(prev => ({ ...prev, quantity: Math.min(prev.quantity + 1, prev.instock) }));
     }
   };
 
-  // Handle quantity decrease
   const decreaseQuantity = (id) => {
-    setProducts(prevProducts => 
-      prevProducts.map(product => 
-        product.id === id && product.quantity > 0
-          ? { ...product, quantity: product.quantity - 1 } 
-          : product
-      )
-    );
-    
-    // Also update the selected product if it's the same one
-    if (selectedProduct && selectedProduct.id === id) {
-      setSelectedProduct(prev => ({
-        ...prev,
-        quantity: prev.quantity > 0 ? prev.quantity - 1 : 0
-      }));
+    setProducts(prev => prev.map(p =>
+      p.id === id ? { ...p, quantity: Math.max(p.quantity - 1, 0) } : p
+    ));
+    if (selectedProduct?.id === id) {
+      setSelectedProduct(prev => ({ ...prev, quantity: Math.max(prev.quantity - 1, 0) }));
     }
   };
 
-  const addToCart = async (id) => {
-    const product = products.find(p => p.id === id);
-  
-    if (!product) return;
-  
-    // Block if quantity is 0 or exceeds in-stock
-    if (product.quantity === 0 || product.quantity > product.instock) {
-      showNotification(`Only ${product.instock} available in stock`);
-      return;
-    }
-  
-    try {
-      // Save to backend
-      await axios.post('http://localhost:5000/api/cart', {
-        product_id: product.id,
-        quantity: product.quantity
-      }, {
-        withCredentials: true
-      });
-  
-      // Update local cart
-      setCart(prevCart => {
-        const existingItemIndex = prevCart.findIndex(item => item.id === id);
-        if (existingItemIndex >= 0) {
-          const updatedCart = [...prevCart];
-          updatedCart[existingItemIndex].quantity += product.quantity;
-          return updatedCart;
-        } else {
-          return [...prevCart, {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: product.quantity
-          }];
-        }
-      });
-  
-      // Reset input quantity
-      setProducts(prevProducts =>
-        prevProducts.map(p =>
-          p.id === id ? { ...p, quantity: 0 } : p
-        )
-      );
-      
-      // Reset quantity in selected product if it's the same one
-      if (selectedProduct && selectedProduct.id === id) {
-        setSelectedProduct(prev => ({
-          ...prev,
-          quantity: 0
-        }));
-      }
-  
-      showNotification(`Added ${product.name} to cart!`);
-    } catch (err) {
-      console.error("Failed to add to cart:", err);
-      showNotification("Error adding to cart.");
-    }
-  };
-
-  // Modal add to cart
-  const addToCartFromModal = async () => {
+  const handleAddToCartModal = () => {
     if (!selectedProduct || selectedProduct.quantity === 0) {
       showNotification("Please select a quantity");
       return;
     }
-
-    try {
-      await axios.post('http://localhost:5000/api/cart', {
-        product_id: selectedProduct.id,
-        quantity: selectedProduct.quantity
-      }, {
-        withCredentials: true
-      });
-
-      // Update cart locally
-      setCart(prevCart => {
-        const existingIndex = prevCart.findIndex(item => item.id === selectedProduct.id);
-        if (existingIndex >= 0) {
-          const updated = [...prevCart];
-          updated[existingIndex].quantity += selectedProduct.quantity;
-          return updated;
-        } else {
-          return [
-            ...prevCart,
-            {
-              id: selectedProduct.id,
-              name: selectedProduct.name,
-              price: selectedProduct.price,
-              quantity: selectedProduct.quantity
-            }
-          ];
-        }
-      });
-
-      // Update the quantity in the main products list
-      setProducts(prevProducts =>
-        prevProducts.map(p =>
-          p.id === selectedProduct.id ? { ...p, quantity: 0 } : p
-        )
-      );
-
-      showNotification(`Added ${selectedProduct.name} to cart!`);
-      setShowModal(false);
-      
-      // Reset quantity in selected product
-      setSelectedProduct(prev => ({
-        ...prev,
-        quantity: 0
-      }));
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-      showNotification("Failed to add to cart");
-    }
+    addToCart(selectedProduct, selectedProduct.quantity);
+    showNotification(`Added ${selectedProduct.name} to cart!`);
+    setSelectedProduct(prev => ({ ...prev, quantity: 0 }));
+    setShowModal(false);
   };
 
-  // Remove item from cart
-  const removeFromCart = (id) => {
-    const product = products.find(p => p.id === id);
-    setCart(prevCart => prevCart.filter(item => item.id !== id));
-    
-    if (product) {
-      showNotification(`Removed ${product.name} from cart!`);
-    }
-  };
-
-  // Show notification
   const showNotification = (message) => {
     setNotification(message);
-    setTimeout(() => {
-      setNotification('');
-    }, 1000);
+    setTimeout(() => setNotification(''), 800);
   };
 
-  // Calculate cart total
-  const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
-  };
-
-  // Handle checkout
-  const handleCheckout = () => {
-    navigate("/Checkout", {
-      state: { cart, totalAmount: calculateTotal() },
-    });
-  };
-
-  // Get unique categories from products
-  const categories = ['all', ...new Set(products.map(product => product.category))];
-
-  // Clear search filter
   const clearSearch = () => {
     setSearchQuery('');
+    navigate('/products'); // Remove search query from URL
+  };
+  
+  const categories = ['all', ...new Set(products.map(p => p.category))];
+
+  // Handle explicit search query setting (for Header component)
+  const handleSetSearchQuery = (query) => {
+    setSearchQuery(query);
+    
+    // Find exact match in products
+    if (products.length > 0) {
+      const exactMatch = products.find(p => p.name.toLowerCase() === query.toLowerCase());
+      if (exactMatch) {
+        setSelectedProduct(exactMatch);
+        setShowModal(true);
+      }
+    }
   };
 
   if (loading) {
     return (
       <>
-        <Header setSearchQuery={setSearchQuery} />
+        <Header 
+          setSearchQuery={handleSetSearchQuery} 
+          isCartOpen={isCartOpen} 
+          setIsCartOpen={setIsCartOpen} 
+        />
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading products...</p>
@@ -393,12 +213,14 @@ useEffect(() => {
   if (error) {
     return (
       <>
-        <Header setSearchQuery={setSearchQuery} />
+        <Header 
+          setSearchQuery={handleSetSearchQuery}
+          isCartOpen={isCartOpen} 
+          setIsCartOpen={setIsCartOpen} 
+        />
         <div className="error-container">
           <p className="error-message">{error}</p>
-          <button onClick={() => window.location.reload()} className="retry-button">
-            Try Again
-          </button>
+          <button onClick={() => window.location.reload()} className="retry-button">Try Again</button>
         </div>
       </>
     );
@@ -406,120 +228,77 @@ useEffect(() => {
 
   return (
     <>
-      <Header setSearchQuery={setSearchQuery} />
-      
+      <Header 
+        setSearchQuery={handleSetSearchQuery}
+        isCartOpen={isCartOpen} 
+        setIsCartOpen={setIsCartOpen} 
+      />
       <div className="container">
-        {/* Logo and Cart Icon */}
-        <div className="shop-header">
-          {/* <div className="logo">Fresh Groceries</div> */}
-          <div className="cart-icon" onClick={() => setIsCartOpen(true)}>
-            <i className="fas fa-shopping-cart"></i>
-            <span className="cart-count">{cart.length}</span>
-          </div>
-        </div>
-        
-        {/* Search Results Indicator */}
         {searchQuery && (
           <div className="search-results-header">
             <h2>Search Results for: "{searchQuery}"</h2>
-            <button className="clear-search-btn" onClick={clearSearch}>
-              Clear Search
-            </button>
+            <button className="clear-search-btn" onClick={clearSearch}>Clear Search</button>
           </div>
         )}
 
-<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-  <h3>🧭 Showing products near: {userLocation}</h3>
-  <select
-    value={userLocation}
-    onChange={(e) => {
-      setManualOverride(true);
-      setUserLocation(e.target.value);
-    }}
-  >
-    <option value="Thamel">Thamel</option>
-    <option value="Budhanilkantha">Budhanilkantha</option>
-    <option value="Naxal">Naxal</option>
-  </select>
-</div>
+        <div className="location-selector">
+          <p className="location-text">Showing near location products: <strong>{userLocation}</strong></p>
+          <select
+            className="location-dropdown"
+            value={userLocation}
+            onChange={(e) => {
+              setManualOverride(true);
+              setUserLocation(e.target.value);
+            }}>
+            <option value="Thamel">Thamel</option>
+            <option value="Budhanilkantha">Budhanilkantha</option>
+            <option value="Naxal">Naxal</option>
+          </select>
+        </div>
 
-
-        {/* Filter Section */}
         <div className="filter-section">
           {categories.map(category => (
-            <button 
-              key={category}
-              className={`filter-btn ${activeCategory === category ? 'active' : ''}`}
-              onClick={() => setActiveCategory(category)}
-            >
+            <button key={category} className={`filter-btn ${activeCategory === category ? 'active' : ''}`} onClick={() => setActiveCategory(category)}>
               {category.charAt(0).toUpperCase() + category.slice(1)}
             </button>
           ))}
         </div>
-        
-        {/* Products Grid */}
+
         <div className="products-grid">
           {filteredProducts.length === 0 ? (
-            <p className="no-products">
-              {searchQuery ? `No products found matching "${searchQuery}"` : "No products found in this category"}
-            </p>
+            <p className="no-products">{searchQuery ? `No products found matching "${searchQuery}"` : "No products found in this category"}</p>
           ) : (
             filteredProducts.map(product => (
-              <div 
-                key={product.id} 
-                className={`product-card ${!product.inStock ? 'out-of-stock' : ''}`}
-              >
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="product-image clickable"
-                  onClick={() => {
-                    setSelectedProduct(product);
-                    setShowModal(true);
-                  }}
-                />
-                <h3 
-                  className="product-name clickable" 
-                  onClick={() => {
-                    setSelectedProduct(product);
-                    setShowModal(true);
-                  }}
-                >
-                  {product.name}
-                </h3>
+              <div key={product.id} className={`product-card ${!product.inStock ? 'out-of-stock' : ''}`}>
+                <img src={product.image} alt={product.name} className="product-image clickable" onClick={() => { setSelectedProduct(product); setShowModal(true); }} />
+                <h3 className="product-name clickable" onClick={() => { setSelectedProduct(product); setShowModal(true); }}>{product.name}</h3>
                 <p className="product-price">NPR {Number(product.price).toFixed(2)}</p>
                 <p className="product-description">{product.description}</p>
-                
-                {!product.inStock ? (
-                  <span className="out-of-stock-label">Out of Stock</span>
-                ) : (
+                {!product.inStock ? (<span className="out-of-stock-label">Out of Stock</span>) : (
                   <>
                     <div className="quantity-controls">
-                      <button 
-                        className="quantity-btn decrease" 
-                        onClick={() => decreaseQuantity(product.id)}
-                      >
-                        -
-                      </button>
+                      <button className="quantity-btn decrease" onClick={() => decreaseQuantity(product.id)}>-</button>
                       <span className="quantity">{product.quantity}</span>
-                      <button 
-                        className="quantity-btn increase" 
-                        onClick={() => increaseQuantity(product.id)}
-                        disabled={product.quantity >= product.instock}
-                        title={product.quantity >= product.instock ? 'Reached max available stock' : ''}
-                      >
-                        +
-                      </button>
+                      <button className="quantity-btn increase" onClick={() => increaseQuantity(product.id)} disabled={product.quantity >= product.instock}>+</button>
                     </div>
+                    {product.quantity >= product.instock && <p className="stock-warning">Only {product.instock} available in stock</p>}
+                    <button
+                      className="add-to-cart-btn"
+                      onClick={() => {
+                        if (product.quantity > 0) {
+                          addToCart(product, product.quantity);
+                          showNotification(`Added ${product.name} to cart!`);
 
-                    {product.quantity >= product.instock && (
-                      <p className="stock-warning">Only {product.instock} available in stock</p>
-                    )}
-
-                    <button 
-                      className="add-to-cart-btn" 
-                      onClick={() => addToCart(product.id)}
-                      disabled={product.quantity === 0}
+                          // Reset quantity after adding
+                          setProducts(prevProducts =>
+                            prevProducts.map(p =>
+                              p.id === product.id ? { ...p, quantity: 0 } : p
+                            )
+                          );
+                        } else {
+                          showNotification("Please select quantity");
+                        }
+                      }}
                     >
                       Add to Cart
                     </button>
@@ -530,129 +309,58 @@ useEffect(() => {
           )}
         </div>
       </div>
-      
-      {/* Shopping Cart Sidebar */}
+
       <div className={`cart-container ${isCartOpen ? 'open' : ''}`}>
         <div className="cart-header">
-          <h2>Your Cart</h2>
-          <button className="cart-close" onClick={() => setIsCartOpen(false)}>
-            &times;
-          </button>
+          <h3>Your Cart</h3>
+          <button className="cart-close" onClick={() => setIsCartOpen(false)}>&times;</button>
         </div>
-        
         <div className="cart-items">
-          {cart.length === 0 ? (
+          {cartItems.length === 0 ? (
             <p>Your cart is empty</p>
           ) : (
-            cart.map(item => (
+            cartItems.map(item => (
               <div key={item.id} className="cart-item">
                 <span>{item.name} x {item.quantity}</span>
                 <span>NPR {(item.price * item.quantity).toFixed(2)}</span>
-                <button 
-                  className="remove-item-btn" 
-                  onClick={() => removeFromCart(item.id)}
-                >
-                  ✕
-                </button>
+                <button className="remove-item-btn" onClick={() => removeFromCart(item.id)}>✕</button>
               </div>
             ))
           )}
         </div>
-        
-        {/* Cart Total Display Section */}
         <div className="cart-subtotal">
           <span className="subtotal-label">Total Amount:</span>
-          <span className="subtotal-value">NPR {calculateTotal()}</span>
+          <span className="subtotal-value">NPR {getCartTotal()}</span>
         </div>
-        
-        {/* Added Checkout Button */}
         <div className="checkout-button-container">
-          <button 
-            className="checkout-button" 
-            onClick={handleCheckout}
-            disabled={cart.length === 0}
-          >
+          <button className="checkout-button" onClick={() => navigate("/Checkout", { state: { totalAmount: getCartTotal() } })} disabled={cartItems.length === 0}>
             Checkout Now
           </button>
         </div>
-        
-        <div className="cart-footer">
-          <div className="cart-total-container">
-            <span>Total:</span>
-            <span>NPR {calculateTotal()}</span>
-          </div>
-          <Link to="/checkout" className="checkout-btn">
-            Proceed to Checkout
-          </Link>
-        </div>
       </div>
-      
-      {/* Notification */}
-      {notification && (
-        <div className="notification visible">
-          {notification}
-        </div>
-      )}
-      
-      {/* Product Modal */}
+
+      {notification && <div className="notification visible">{notification}</div>}
+
       {showModal && selectedProduct && (
         <div className="product-modal-overlay" onClick={() => setShowModal(false)}>
-          <div
-            className="product-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="product-modal" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
             <img src={selectedProduct.image} alt={selectedProduct.name} className="modal-image" />
             <h2>{selectedProduct.name}</h2>
             <p>{selectedProduct.description}</p>
             <p><strong>NPR {Number(selectedProduct.price).toFixed(2)}</strong></p>
             <p>Stock: {selectedProduct.instock}</p>
-
-            {/* Quantity Control */}
             <div className="quantity-controls modal-quantity">
-              <button
-                className="quantity-btn decrease"
-                onClick={() =>
-                  setSelectedProduct(prev => ({
-                    ...prev,
-                    quantity: Math.max((prev.quantity || 0) - 1, 0)
-                  }))
-                }
-              >
-                –
-              </button>
+              <button className="quantity-btn decrease" onClick={() => setSelectedProduct(prev => ({ ...prev, quantity: Math.max((prev.quantity || 0) - 1, 0) }))}>–</button>
               <span className="quantity">{selectedProduct.quantity || 0}</span>
-              <button
-                className="quantity-btn increase"
-                onClick={() =>
-                  setSelectedProduct(prev =>
-                    (prev.quantity || 0) < prev.instock
-                      ? { ...prev, quantity: (prev.quantity || 0) + 1 }
-                      : prev
-                  )
-                }
-                disabled={selectedProduct.quantity >= selectedProduct.instock}
-              >
-                +
-              </button>
+              <button className="quantity-btn increase" onClick={() => setSelectedProduct(prev => (prev.quantity || 0) < prev.instock ? { ...prev, quantity: (prev.quantity || 0) + 1 } : prev)} disabled={selectedProduct.quantity >= selectedProduct.instock}>+</button>
             </div>
-
-            {selectedProduct.quantity >= selectedProduct.instock && (
-              <p className="stock-warning">Only {selectedProduct.instock} available in stock</p>
-            )}
-
-            {/* Add to Cart */}
-            <button
-              className="add-to-cart-btn modal-add-btn"
-              onClick={addToCartFromModal}
-              disabled={(selectedProduct.quantity || 0) === 0}
-            >
-              Add to Cart
-            </button>
+            {selectedProduct.quantity >= selectedProduct.instock && <p className="stock-warning">Only {selectedProduct.instock} available in stock</p>}
+            <button className="add-to-cart-btn modal-add-btn" onClick={handleAddToCartModal} disabled={(selectedProduct.quantity || 0) === 0}>Add to Cart</button>
           </div>
         </div>
       )}
-      <Footer/>
+      <Footer />
     </>
   );
 };

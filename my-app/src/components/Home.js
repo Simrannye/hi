@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import "./Home.css";
 import Header from "./Header";
@@ -8,9 +8,54 @@ import dairy from "./dairy.jpg";
 import bakery from "./bakery.jpg";
 import review from "./review.jpeg";
 import Footer from "./Footer";
-
+import axios from 'axios';
+import { useUserContext } from './context/UserContext';
 
 const Home = () => {
+  const { user } = useUserContext();
+  const [recommended, setRecommended] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [debug, setDebug] = useState(null); // For debugging purposes
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      // Only fetch recommendations if user is logged in
+      if (!user || !user.username) {
+        console.log("No user logged in or no username available");
+        return;
+      }
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        console.log(`Fetching recommendations for user: ${user.username}`);
+        const res = await axios.get(`http://localhost:5000/api/recommendations/${user.username}`);
+        
+        // Store the full response for debugging
+        setDebug(res.data);
+        console.log("API Response:", res.data);
+        
+        // Check if the response contains recommendations property and it's an array
+        if (res.data && Array.isArray(res.data.recommendations)) {
+          setRecommended(res.data.recommendations);
+          console.log(`Set ${res.data.recommendations.length} recommendations`);
+        } else {
+          console.warn("Invalid recommendations format in API response");
+          setRecommended([]);
+        }
+      } catch (err) {
+        console.error('Error fetching recommendations:', err);
+        setError('Failed to load recommendations');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchRecommendations();
+  }, [user]);
+
   return (
     <>
       <Header />
@@ -30,51 +75,78 @@ const Home = () => {
         <h2>Shop By Category</h2>
         <div className="category-container">
           <div className="category-card">
-            <img src= {fruit} alt="Fresh Fruits" />
+            <img src={fruit} alt="Fresh Fruits" />
             <h3>Fruits</h3>
-            <Link to="/Products">Browse Fruits</Link>
+            <Link to="/Products?category=Fruits">Browse Fruits</Link>
           </div>
           <div className="category-card">
             <img src={veggie} alt="Fresh Vegetables" />
             <h3>Vegetables</h3>
-            <Link to="/Products">Browse Vegetables</Link>
+            <Link to="/Products?category=Vegetables">Browse Vegetables</Link>
           </div>
           <div className="category-card">
             <img src={dairy} alt="Dairy Products" />
             <h3>Dairy</h3>
-            <Link to="/Products">Browse Dairy</Link>
+            <Link to="/Products?category=Dairy">Browse Dairy</Link>
           </div>
           <div className="category-card">
             <img src={bakery} alt="Bakery Items" />
             <h3>Bakery</h3>
-            <Link to="/Products">Browse Bakery</Link>
+            <Link to="/Products?category=Bakery">Browse Bakery</Link>
           </div>
         </div>
       </section>
 
-      {/* Special Offers Section
-      <section className="special-offers">
-        <h2>Special Offers</h2>
-        <div className="offers-container">
-          <div className="offer-card">
-            <div className="discount-badge">20% OFF</div>
-            <img src="/images/seasonal-fruits.jpg" alt="Seasonal Fruits" />
-            <h3>Seasonal Fruits</h3>
-            <p>Get 20% off on all seasonal fruits this week!</p>
-            <Link to="/offers" className="offer-btn">View Offer</Link>
-          </div>
-          <div className="offer-card">
-            <div className="discount-badge">Buy 1 Get 1</div>
-            <img src="/images/organic-vegetables.jpg" alt="Organic Vegetables" />
-            <h3>Organic Vegetables</h3>
-            <p>Buy one get one free on selected organic vegetables!</p>
-            <Link to="/offers" className="offer-btn">View Offer</Link>
-          </div>
-        </div>
-      </section> */}
+      {/* Recommendations Section */}
+      {user && (
+        <section className="recommended-section">
+          <h2>Recommended for You</h2>
+          
+          {isLoading && <div className="loading">Loading recommendations...</div>}
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          {!isLoading && !error && recommended && recommended.length > 0 ? (
+            <div className="products-grid">
+              {recommended.map(product => (
+                <div key={product.id} className="product-card">
+                  <img 
+                    src={`http://localhost:5000${product.image}`} 
+                    alt={product.name}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/placeholder-image.jpg';
+                    }}
+                  />
+                  <h3 className="product-name">{product.name}</h3>
+                  <p className="product-category">Category: {product.category}</p>
+                  <p className="product-description">{product.description}</p>
+                  <p className="product-price"><strong>NPR {product.price}</strong></p>
+                  <Link to={`/Products?id=${product.id}`} className="view-product-btn">
+                    View Product
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ) : !isLoading && !error ? (
+            <div className="no-recommendations">
+              <p>No personalized recommendations available yet. Keep shopping to get recommendations based on your preferences!</p>
+            </div>
+          ) : null}
+          
+          {/* Debug info - remove in production
+          {debug && process.env.NODE_ENV === 'development' && (
+            <div className="debug-info" style={{ margin: "20px", padding: "10px", border: "1px solid #ccc", backgroundColor: "#f8f8f8" }}>
+              <h4>Debug Information:</h4>
+              <pre>{JSON.stringify(debug, null, 2)}</pre>
+            </div>
+          )} */}
+        </section>
+      )}
 
       {/* Why Choose Us Section */}
       <section className="why-choose-us">
+        {/* Other sections remain unchanged */}
         <h2>Why Choose GrabNGo?</h2>
         <div className="features-container">
           <div className="feature">
@@ -100,7 +172,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Rest of the component remains the same */}
       <section className="how-it-works">
         <h2>How It Works</h2>
         <div className="steps-container">
@@ -122,7 +194,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section className="testimonials">
         <h2>What Our Customers Say</h2>
         <div className="testimonials-container">
