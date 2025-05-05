@@ -1,4 +1,4 @@
-import "../App.css";
+import "./contact.css";
 import Header from "./Header";
 import contactImg from "./contact.avif";
 import React, { useState } from 'react';

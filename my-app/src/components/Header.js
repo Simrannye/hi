@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import logo from "../grab.png";
+import logo from "../grabb.png";
 import "./Header.css";
 import axios from 'axios';
 
@@ -158,16 +158,18 @@ const Header = ({ setSearchQuery }) => {
         </nav>
 
         <div className="search-container" ref={searchRef}>
-          <form onSubmit={handleSearchSubmit} className="search-form">
-            <input 
-              type="text" 
-              placeholder="Search products..." 
-              value={searchInput}
-              onChange={handleSearchChange}
-              onFocus={() => setShowSuggestions(true)}
-            />
-            <button type="submit">&#10162;</button>
-          </form>
+        <form onSubmit={handleSearchSubmit} className="search-form">
+  <input 
+    type="text" 
+    placeholder="Search products..." 
+    value={searchInput}
+    onChange={handleSearchChange}
+    onFocus={() => setShowSuggestions(true)}
+  />
+  <button type="submit">
+    <i className="fas fa-search"></i>
+  </button>
+</form>
           
           {showSuggestions && suggestions.length > 0 && (
             <ul className="search-suggestions">

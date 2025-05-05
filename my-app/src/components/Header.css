@@ -1,53 +1,63 @@
 :root {
-  --primary-color: #8FBC8F; /* Changed from pink to sage green */
-  --secondary-color: #6B8E23; /* Added olive green as secondary */
-  --text-color: #2E4F1E; /* Changed to dark forest green */
+  --primary-color: #8FBC8F; /* Sage green */
+  --secondary-color: #6B8E23; /* Olive green */
+  --text-color: #2E4F1E; /* Dark forest green */
   --bg-color: white;
-  --hover-bg: rgba(143, 188, 143, 0.1); /* Changed to sage green with opacity */
+  --hover-bg: rgba(143, 188, 143, 0.1); /* Sage green with opacity */
   --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --border-color: rgba(143, 188, 143, 0.3);
 }
 
 /* Header Styling */
 header {
   position: fixed;
-  top: -24px; left: 0; right: 0;
+  top: 0;
+  left: 0; 
+  right: 0;
   background: var(--bg-color);
-  padding: 1rem 5%;
+  padding: 0.8rem 5%; /* Slightly reduced vertical padding */
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 1000;
   box-shadow: var(--shadow);
   transition: all 0.3s ease-in-out;
-  border-bottom: 3px solid rgba(143, 188, 143, 0.3); /* Added green border bottom */
+  border-bottom: 3px solid var(--border-color);
 }
+
+
 
 /* Logo */
 header .logo {
-  width: 75px;
+  width: 120px; /* Increased from 100px for better visibility */
   height: auto;
   color: var(--text-color);
   font-weight: bold;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  font-size: 1.2rem;
   transition: color 0.3s;
-  margin-top: 23px;
-
+  margin: 8px 0; /* Add vertical margin to better center the logo */
 }
+
 
 header .logo span {
   color: var(--primary-color);
 }
 
 /* Navbar Links */
+header .navbar {
+  display: flex;
+  align-items: center;
+}
+
 header .navbar a {
-  font-size: 1.8rem;
+  font-size: 1.7rem; /* Increased font size */
   padding: 0 1.5rem;
   color: var(--text-color);
   text-decoration: none;
   position: relative;
   transition: color 0.3s;
-  margin-left: 20px;
 }
 
 header .navbar a:hover {
@@ -71,18 +81,14 @@ header .navbar a:hover::after {
   left: 0;
 }
 
-.searchsubmit {
-  position: absolute;
-  top: 39px;
-  right: 100px;
-  border-radius: 50%;
-  padding: 3px 6px;
-  font-size: 12px;
+/* Icons */
+header .icons {
+  display: flex;
+  align-items: center;
 }
 
-/* Icons */
 header .icons a {
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   color: var(--text-color);
   margin-left: 1.5rem;
   transition: color 0.3s, transform 0.2s;
@@ -93,49 +99,76 @@ header .icons a:hover {
   transform: scale(1.1);
 }
 
+/* Improved Search Form Styling */
 .search-form {
-  margin-left: 10px; 
   position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0 20px;
+}
+
+header .navbar,
+header .icons,
+.search-form {
   display: flex;
   align-items: center;
 }
 
 .search-form input[type="text"] {
-  padding: 5px 10px;
-  margin-top: 50px;
-  background: #868b8408;
-  font-size: 16px;
-  color: #0c0b0b;
-  border: 1px solid #ccc;
-  border-radius: 19px;
-  outline: auto;
-  height: 26px; 
+  padding: 12px 18px;
+  padding-right: 55px; /* Increased space for the search icon/button */
+  font-size: 1.4rem;
+  color: var(--text-color);
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-color);
+  border-radius: 50px;
+  width: 280px;
+  outline: none;
+  transition: all 0.3s ease;
+  height: 50px; /* Set fixed height for better alignment */
+  line-height: 50px; /* Match line height to input height */
+  margin-top: 19px;
 }
 
-.logout-btn{
-  display: inline-block;
-  padding: 12px 25px;
-  font-size: 1.4rem;
-  font-weight: 600; 
-  text-transform: uppercase;
-  text-decoration: none;
-  color: white;
-  background: #8FBC8F; 
-  border-radius: 8px;
-  transition: background 0.3s ease, transform 0.2s ease;
-  letter-spacing: 0.5px;
-  margin-left: 80px;
+.search-form input[type="text"]:focus {
+  box-shadow: 0 0 8px rgba(143, 188, 143, 0.4);
+  border-color: var(--primary-color);
+  width: 320px; /* Slightly expand on focus */
 }
 
 .search-form button {
   position: absolute;
-  right: 5px;
-  background: none;
+  right: 8px;
+  top: 50%; /* Position in the middle vertically */
+  transform: translateY(-50%); /* Center perfectly */
+  background-color: var(--primary-color);
+  color: white;
   border: none;
   cursor: pointer;
-  font-size: 19px;
-  color: var(--text-color); /* Changed to match theme */
-  margin-bottom: -28px;
+  font-size: 1.2rem; 
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0; /* Remove any padding that might affect alignment */
+}
+
+.search-form button:hover {
+  background-color: var(--secondary-color);
+  /* transform: translateY(-50%) scale(1.05); Keep vertical centering while scaling */
+}
+
+.search-form button:hover {
+  background-color: var(--secondary-color);
+  /* transform: scale(1.05); */
+}
+
+.search-form button:hover {
+  color: var(--primary-color);
 }
 
 .search-form button:focus {
@@ -143,27 +176,79 @@ header .icons a:hover {
 }
 
 .search-form button span {
-  visibility: hidden;
   position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.search-form input[type="text"]:hover,
-.search-form button:hover {
-  border-color: #8FBC8F; /* Changed to sage green */
+/* Logout Button */
+.logout-btn {
+  display: inline-block;
+  padding: 12px 25px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: white;
+  background: var(--primary-color);
+  border-radius: 8px; /* Changed from 50px to less rounded */
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  margin-left: 20px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Added subtle shadow */
 }
 
-.search-form input[type="text"]:focus {
-  box-shadow: 0 0 5px rgba(143, 188, 143, 0.7); /* Changed to sage green */
-  border: 1px solid #8FBC8F; /* Changed to sage green */
+.logout-btn:hover {
+  background: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.username {
+  color: var(--text-color);
+  font-size: 1.6rem; /* Increased font size */
+  margin-right: 15px;
+  font-weight: 500;
+}
+
+/* User Avatar */
+.initials-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.8rem; /* Increased font size */
+  margin: 0 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Added subtle shadow */
+}
+
+header.scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-bottom: 3px solid rgba(143, 188, 143, 0.6);
+}
+
+/* Hamburger Menu */
 header .fa-bars {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   color: var(--text-color);
   border-radius: 8px;
-  padding: 0.5rem 1.2rem;
+  padding: 0.5rem;
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   display: none;
   transition: all 0.3s ease;
 }
@@ -171,43 +256,4 @@ header .fa-bars {
 header .fa-bars:hover {
   background: var(--hover-bg);
   border-color: var(--primary-color);
-}
-
-.username{
-  color: white;
-  font-size: 20px;
-margin-left: 110px;}
-
-header.scrolled {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  border-bottom: 3px solid rgba(143, 188, 143, 0.6); /* Darker green border when scrolled */
-}
-
-
-.initials-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: #007bff;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  font-size: 32px;
-  margin: 10px auto;
-}
-
-
-/* Responsive
- Design */
-@media (max-width: 768px) {
-  header .navbar {
-      display: none;
-  }
-
-  header .fa-bars {
-      display: block;
-  }
 }

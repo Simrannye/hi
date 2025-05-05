@@ -19,6 +19,8 @@ import AdminRoute from './components/AdminRoute';
 import RiderLogin from "./rider/RiderLogin";
 import RiderPanel from "./rider/RiderPanel";
 import AdminLogin from "./components/AdminLogin";
+import Terms from "./components/Terms";
+
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 function App() {
@@ -120,6 +122,7 @@ function App() {
 } />
 <Route path="/admin-login" element={<AdminLogin />} />
 <Route path="/rider" element={<RiderLogin setRiderId={setRiderId} />} />
+<Route path="/terms" element={<Terms />} />
           </Routes>
         </main>
       </div>

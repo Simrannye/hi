@@ -1,0 +1,229 @@
+/* 
+ * Contact Page CSS - Matching the Products Page Design
+ * Clean, modern styling with consistent typography
+ */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Base Variables */
+:root {
+  --heading-font: 'Poppins', sans-serif;
+  --body-font: 'Poppins', sans-serif;
+  --primary-color: #4CAF50;
+  --secondary-color: #388E3C;
+  --text-dark: #333333;
+  --text-medium: #555555;
+  --text-light: #777777;
+  --bg-light: #f6f9f4;
+  --border-color: #e0e0e0;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Contact Section Base */
+.contact {
+  padding: 60px 0;
+  background: var(--bg-light);
+  font-family: var(--body-font);
+  margin-top: 100px; /* Matches the top margin from product page */
+}
+
+/* Contact Container */
+.contact-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+/* Image Styling */
+.contact-image {
+  flex: 1;
+  min-width: 300px;
+}
+
+.contact-image img {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: var(--shadow-sm);
+  object-fit: cover;
+}
+
+/* Contact Form */
+.contact-form {
+  flex: 1;
+  min-width: 300px;
+}
+
+.contact-heading {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: var(--text-dark);
+  position: relative;
+  font-family: var(--heading-font);
+}
+
+.contact-heading:after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 50px;
+  height: 3px;
+  background-color: var(--primary-color);
+}
+
+/* Form Elements */
+.contact-form form {
+  display: flex;
+  flex-direction: column;
+}
+
+.box {
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: var(--body-font);
+  color: var(--text-dark);
+  transition: all 0.3s ease;
+}
+
+.box:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  outline: none;
+}
+
+.box::placeholder {
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+textarea.box {
+  min-height: 150px;
+  resize: vertical;
+}
+
+/* Send Button */
+.messagebtn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: var(--body-font);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+.messagebtn:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Success Message */
+.success-message {
+  background-color: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.success-message p {
+  color: var(--primary-color);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.success-message button {
+  background-color: white;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.success-message button:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+  .contact-container {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact {
+    padding: 40px 20px;
+  }
+  
+  .contact-container {
+    flex-direction: column;
+    padding: 25px;
+  }
+  
+  .contact-image {
+    order: 2; /* Move image below form on mobile */
+  }
+  
+  .contact-form {
+    order: 1;
+  }
+  
+  .contact-heading {
+    font-size: 24px;
+    text-align: center;
+  }
+  
+  .contact-heading:after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 480px) {
+  .contact {
+    margin-top: 80px;
+    padding: 30px 15px;
+  }
+  
+  .contact-container {
+    padding: 20px;
+  }
+  
+  .box {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+  
+  .messagebtn {
+    padding: 12px;
+    font-size: 15px;
+  }
+}

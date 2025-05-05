@@ -411,7 +411,7 @@ useEffect(() => {
       <div className="container">
         {/* Logo and Cart Icon */}
         <div className="shop-header">
-          <div className="logo">Fresh Groceries</div>
+          {/* <div className="logo">Fresh Groceries</div> */}
           <div className="cart-icon" onClick={() => setIsCartOpen(true)}>
             <i className="fas fa-shopping-cart"></i>
             <span className="cart-count">{cart.length}</span>
