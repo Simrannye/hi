@@ -26,7 +26,8 @@ const UserSetting = () => {
         if (res.data.authenticated) {
           // ✅ Destructure all fields from backend response
           const { username, email, phone, address } = res.data.user;
-  
+  console.log("Fetched user data:", res.data.user);
+
           // ✅ Update all fields in state
           setUserData({ username, email, phone, address });
         }

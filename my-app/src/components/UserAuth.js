@@ -3,33 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import './UserAuth.css';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
-
 function UserAuth() {
     const [isActive, setIsActive] = useState(false);
     const navigate = useNavigate();
     
-    // Register form state
     const [registerData, setRegisterData] = useState({
         username: '',
         email: '',
         password: ''
     });
-    
-    // Login form state
+
     const [loginData, setLoginData] = useState({
         email: '',
         password: ''
     });
-    
-    // Verification state
+
     const [verificationStep, setVerificationStep] = useState(false);
     const [verificationData, setVerificationData] = useState({
         userId: null,
         verificationCode: '',
         email: ''
     });
-    
-    // Error and loading states
+
     const [registerError, setRegisterError] = useState('');
     const [loginError, setLoginError] = useState('');
     const [verificationError, setVerificationError] = useState('');
@@ -38,7 +33,7 @@ function UserAuth() {
     const [verificationSuccess, setVerificationSuccess] = useState(false);
     const [showRegisterPassword, setShowRegisterPassword] = useState(false);
     const [showLoginPassword, setShowLoginPassword] = useState(false);
-    
+
     const switchToRegister = () => {
         setIsActive(true);
         setLoginError('');
@@ -49,117 +44,94 @@ function UserAuth() {
         setRegisterError('');
         setVerificationStep(false);
     };
-    
-    // Handle register form changes
+
     const handleRegisterChange = (e) => {
         const { name, value } = e.target;
         setRegisterData({
             ...registerData,
-            [name]: value
+            [name]: name === "email" ? value.toLowerCase() : value
         });
     };
-    
-    // Handle login form changes
+
     const handleLoginChange = (e) => {
         const { name, value } = e.target;
         setLoginData({
             ...loginData,
-            [name]: value
+            [name]: name === "email" ? value.toLowerCase() : value
         });
     };
-    
-    // Handle verification code input
+
     const handleVerificationChange = (e) => {
         setVerificationData({
             ...verificationData,
             verificationCode: e.target.value
         });
     };
-    
-    // Handle register form submission
+
     const handleRegisterSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setRegisterError('');
-        
+
+        // Email format validation
+        if (!registerData.email.includes('@') || !registerData.email.endsWith('@gmail.com')) {
+            setRegisterError("Please enter a valid Gmail address (e.g., example@gmail.com)");
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:5000/api/auth/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(registerData),
                 credentials: 'include'
             });
-            
+
             const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
-            }
-            
-            // Set verification data
+
+            if (!response.ok) throw new Error(data.message || 'Registration failed');
+
             setVerificationData({
                 userId: data.userId,
                 verificationCode: '',
                 email: registerData.email
             });
-            
-            // Show verification step
+
             setVerificationStep(true);
             setRegisterSuccess(true);
-            
-            // Reset form
-            setRegisterData({
-                username: '',
-                email: '',
-                password: ''
-            });
-            setTimeout(() => {
-                setRegisterSuccess(false);
-            }, 4000);
+            setRegisterData({ username: '', email: '', password: '' });
+
+            setTimeout(() => setRegisterSuccess(false), 4000);
         } catch (error) {
             setRegisterError(error.message);
         } finally {
             setIsLoading(false);
         }
     };
-    
-    // Handle verification form submission
+
     const handleVerificationSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setVerificationError('');
-        
+
         try {
             const response = await fetch('http://localhost:5000/api/auth/verify', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: verificationData.userId,
                     verificationCode: verificationData.verificationCode
                 }),
                 credentials: 'include'
             });
-            
+
             const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'Verification failed');
-            }
-            
-            // Show verification success
+            if (!response.ok) throw new Error(data.message || 'Verification failed');
+
             setVerificationSuccess(true);
-            
-            // Reset verification form
-            setVerificationData({
-                ...verificationData,
-                verificationCode: ''
-            });
-            
-            // Switch to login after 3 seconds
+            setVerificationData({ ...verificationData, verificationCode: '' });
+
             setTimeout(() => {
                 setVerificationStep(false);
                 setIsActive(false);
@@ -171,167 +143,101 @@ function UserAuth() {
             setIsLoading(false);
         }
     };
-    
-    // Handle resend verification code
+
     const handleResendCode = async () => {
         setIsLoading(true);
         setVerificationError('');
-        
+
         try {
             const response = await fetch('http://localhost:5000/api/auth/resend-verification', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: verificationData.email
-                }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: verificationData.email }),
                 credentials: 'include'
             });
-            
+
             const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to resend verification code');
-            }
-            
-            // Update user ID in case it changed
-            setVerificationData({
-                ...verificationData,
-                userId: data.userId
-            });
-            
-            // Show success message
+            if (!response.ok) throw new Error(data.message || 'Failed to resend verification code');
+
+            setVerificationData({ ...verificationData, userId: data.userId });
             setRegisterSuccess(true);
-            setTimeout(() => {
-                setRegisterSuccess(false);
-            }, 3000);
+            setTimeout(() => setRegisterSuccess(false), 3000);
         } catch (error) {
             setVerificationError(error.message);
         } finally {
             setIsLoading(false);
         }
     };
-    
-    // Handle login form submission
+
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setLoginError('');
-      
+
         try {
-          const response = await fetch('http://localhost:5000/api/auth/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(loginData),
-            credentials: 'include'
-          });
-      
-          const data = await response.json();
-      
-          if (!response.ok) {
-            // Check if verification is required
-            if (response.status === 403 && data.requiresVerification) {
-              setVerificationData({
-                userId: data.userId,
-                verificationCode: '',
-                email: loginData.email
-              });
-              setVerificationStep(true);
-              setIsActive(true);
-              throw new Error('Please verify your email before logging in');
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(loginData),
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 403 && data.requiresVerification) {
+                    setVerificationData({
+                        userId: data.userId,
+                        verificationCode: '',
+                        email: loginData.email
+                    });
+                    setVerificationStep(true);
+                    setIsActive(true);
+                    throw new Error('Please verify your email before logging in');
+                }
+                throw new Error(data.message || 'Login failed');
             }
-      
-            throw new Error(data.message || 'Login failed');
-          }
-      
-          // ✅ Redirect based on role
-          if (data.user.role === 'admin') {
-            navigate('/AdminPannel');
-          } else {
-            navigate('/');
-          }
-      
+
+            if (data.user.role === 'admin') {
+                navigate('/AdminPannel');
+            } else {
+                navigate('/');
+            }
         } catch (error) {
-          setLoginError(error.message);
+            setLoginError(error.message);
         } finally {
-          setIsLoading(false);
+            setIsLoading(false);
         }
-      };
-      
+    };
 
     return (
         <div id="user-auth-container">
             <div id="blur-overlay"></div>
             <div className={`content justify-content-center align-items-center d-flex shadow-lg ${isActive ? "active" : ""}`} id='content'>
-                {/* Registration */}
+                
+                {/* Registration Form */}
                 <div className='col-md-6 d-flex justify-content-center'>
                     {!verificationStep ? (
                         <form onSubmit={handleRegisterSubmit}>
                             <div className="header-text mb-4">
                                 <h1>Create Account</h1>
                                 {registerError && <div className="alert alert-danger">{registerError}</div>}
-                                {registerSuccess && <div className="alert alert-success">Registration successful! Please check your email for verification code.</div>}
+                                {registerSuccess && <div className="alert alert-success">Registration successful! Check email.</div>}
                             </div>
                             <div className='input-group mb-3'>
-                                <input 
-                                    type='text' 
-                                    name='username'
-                                    placeholder='Username' 
-                                    className='form-control'
-                                    value={registerData.username}
-                                    onChange={handleRegisterChange}
-                                    required
-                                />
+                                <input type='text' name='username' placeholder='Username' className='form-control' value={registerData.username} onChange={handleRegisterChange} required />
                             </div>
                             <div className='input-group mb-3'>
-                                <input 
-                                    type='email' 
-                                    name='email'
-                                    placeholder='Email' 
-                                    className='form-control'
-                                    value={registerData.email}
-                                    onChange={handleRegisterChange}
-                                    required
-                                />
+                                <input type='email' name='email' placeholder='Email' className='form-control' value={registerData.email} onChange={handleRegisterChange} required />
                             </div>
                             <div className="input-group mb-3 position-relative">
-  <input 
-    type={showRegisterPassword ? "text" : "password"} 
-    name="password"
-    placeholder="Password"
-    className="form-control"
-    value={registerData.password}
-    onChange={handleRegisterChange}
-    required
-    style={{ paddingRight: "40px" }}
-  />
-  <span
-    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-    style={{
-      position: "absolute",
-      right: "10px",
-      top: "50%",
-      transform: "translateY(-50%)",
-      cursor: "pointer",
-      color: "#999"
-    }}
-  >
-    {showRegisterPassword ? <FaEyeSlash /> : <FaEye />}
-  </span>
-</div>
-
-                            
+                                <input type={showRegisterPassword ? "text" : "password"} name="password" placeholder="Password" className="form-control" value={registerData.password} onChange={handleRegisterChange} required style={{ paddingRight: "40px" }} />
+                                <span onClick={() => setShowRegisterPassword(!showRegisterPassword)} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#999" }}>
+                                    {showRegisterPassword ? <FaEyeSlash /> : <FaEye />}
+                                </span>
+                            </div>
                             <div className='input-group mb-3 justify-content-center'>
-                                <button 
-                                    type="submit" 
-                                    className='btn border-white text-white w-50 fs-6'
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? 'Registering...' : 'Register'}
-                                </button>
+                                <button type="submit" className='btn border-white text-white w-50 fs-6' disabled={isLoading}>{isLoading ? 'Registering...' : 'Register'}</button>
                             </div>
                         </form>
                     ) : (
@@ -342,108 +248,45 @@ function UserAuth() {
                                 {verificationSuccess && <div className="alert alert-success">Email verified successfully! You can now log in.</div>}
                                 {registerSuccess && <div className="alert alert-success">Verification code sent to your email.</div>}
                             </div>
-                            <p className="text-center mb-4">We've sent a verification code to your email. Please enter it below to activate your account.</p>
+                            <p className="text-center mb-4">We've sent a verification code to your email. Enter it below.</p>
                             <div className='input-group mb-3'>
-                                <input 
-                                    type='text' 
-                                    placeholder='Verification Code' 
-                                    className='form-control'
-                                    value={verificationData.verificationCode}
-                                    onChange={handleVerificationChange}
-                                    required
-                                />
+                                <input type='text' placeholder='Verification Code' className='form-control' value={verificationData.verificationCode} onChange={handleVerificationChange} required />
                             </div>
-                            
                             <div className='input-group mb-3 justify-content-center'>
-                                <button 
-                                    type="submit" 
-                                    className='btn border-white text-white w-50 fs-6'
-                                    disabled={isLoading}
-                                >
-                                    {isLoading ? 'Verifying...' : 'Verify'}
-                                </button>
+                                <button type="submit" className='btn border-white text-white w-50 fs-6' disabled={isLoading}>{isLoading ? 'Verifying...' : 'Verify'}</button>
                             </div>
                             <div className='d-flex justify-content-center'>
-                                <button 
-                                    type="button" 
-                                    className='btn btn-link'
-                                    onClick={handleResendCode}
-                                    disabled={isLoading}
-                                >
-                                    Resend verification code
-                                </button>
+                                <button type="button" className='btn btn-link' onClick={handleResendCode} disabled={isLoading}>Resend verification code</button>
                             </div>
                             <div className='d-flex justify-content-center mt-2'>
-                                <button 
-                                    type="button" 
-                                    className='btn btn-link'
-                                    onClick={switchToLogin}
-                                >
-                                    Back to login
-                                </button>
+                                <button type="button" className='btn btn-link' onClick={switchToLogin}>Back to login</button>
                             </div>
                         </form>
                     )}
                 </div>
 
-                {/* Login */}
+                {/* Login Form */}
                 <div className='col-md-6 right-box'>
                     <form onSubmit={handleLoginSubmit}>
                         <div className="header-text mb-4">
-                        {verificationSuccess && <div className="alert alert-success">Email verified successfully! You can now log in.</div>}
+                            {verificationSuccess && <div className="alert alert-success">Email verified! You can now log in.</div>}
                             <h1>Log In</h1>
                             {loginError && <div className="alert alert-danger">{loginError}</div>}
                         </div>
                         <div className='input-group mb-3'>
-                            <input 
-                                type='email' 
-                                name='email'
-                                placeholder='Email' 
-                                className='form-control'
-                                value={loginData.email}
-                                onChange={handleLoginChange}
-                                required
-                            />
+                            <input type='email' name='email' placeholder='Email' className='form-control' value={loginData.email} onChange={handleLoginChange} required />
                         </div>
                         <div className="input-group mb-3 position-relative">
-  <input 
-    type={showLoginPassword ? "text" : "password"} 
-    name="password"
-    placeholder="Password" 
-    className="form-control"
-    value={loginData.password}
-    onChange={handleLoginChange}
-    required
-    style={{ paddingRight: "40px" }}
-  />
-  <span
-    onClick={() => setShowLoginPassword(!showLoginPassword)}
-    style={{
-      position: "absolute",
-      right: "10px",
-      top: "50%",
-      transform: "translateY(-50%)",
-      cursor: "pointer",
-      color: "#999"
-    }}
-  >
-    {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
-  </span>
-</div>
-
+                            <input type={showLoginPassword ? "text" : "password"} name="password" placeholder="Password" className="form-control" value={loginData.password} onChange={handleLoginChange} required style={{ paddingRight: "40px" }} />
+                            <span onClick={() => setShowLoginPassword(!showLoginPassword)} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#999" }}>
+                                {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
+                            </span>
+                        </div>
                         <div className='input-group mb-5 d-flex justify-content-between'>
-                            <div className='forgot'>
-                                <small><a href='/forgot'>Forgot Password?</a></small>
-                            </div>
+                            <div className='forgot'><small><a href='/forgot'>Forgot Password?</a></small></div>
                         </div>
                         <div className='input-group mb-3 justify-content-center'>
-                            <button 
-                                type="submit" 
-                                className='btn border-white text-white w-50 fs-6'
-                                disabled={isLoading}
-                            >
-                                {isLoading ? 'Logging in...' : 'Login'}
-                            </button>
+                            <button type="submit" className='btn border-white text-white w-50 fs-6' disabled={isLoading}>{isLoading ? 'Logging in...' : 'Login'}</button>
                         </div>
                     </form> 
                 </div>

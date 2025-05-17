@@ -69,11 +69,10 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // Clear cart locally (optional backend clearing could be added)
-  const clearCart = () => {
-    setCartItems([]);
-  };
-
+// Clear cart locally only
+const clearCart = () => {
+  setCartItems([]);
+};
   // Count total quantity of items in cart
   const getCartCount = () =>
     cartItems.reduce((total, item) => total + item.quantity, 0);

@@ -23,6 +23,7 @@ import Terms from "./components/Terms";
 import { UserProvider } from "./components/context/UserContext";
 import { CartProvider } from "./components/CartContext";
 import Header from "./components/Header";
+import OrderConfirmation from "./components/OrderConfirmation";
 
 
 import axios from 'axios';
@@ -140,6 +141,7 @@ function App() {
 <Route path="/admin-login" element={<AdminLogin />} />
 <Route path="/rider" element={<RiderLogin setRiderId={setRiderId} />} />
 <Route path="/terms" element={<Terms />} />
+<Route path="/order-confirmation" element={<OrderConfirmation />} />
           </Routes>
         </main>
       </div>

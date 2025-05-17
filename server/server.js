@@ -87,6 +87,7 @@ app.use(session({
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {
   console.log('Session User:', req.session.user);
+
   if (req.session.user) {
     next();
   } else {
@@ -96,23 +97,38 @@ const isAuthenticated = (req, res, next) => {
     });
   }
 };
-
 // Check authentication status
-app.get('/api/auth/status', (req, res) => {
-  if (req.session.user) {
-    res.json({ 
-      authenticated: true, 
-      user: { 
-        id: req.session.user.id, 
-        username: req.session.user.username, 
-        email: req.session.user.email,
-        role: req.session.user.role
-      } 
+app.get('/api/auth/status', async (req, res) => {
+  if (!req.session.user) {
+    return res.json({ authenticated: false });
+  }
+
+  try {
+    const userId = req.session.user.id;
+    const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+
+    if (users.length === 0) {
+      return res.json({ authenticated: false });
+    }
+
+    const user = users[0];
+    res.json({
+      authenticated: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        phone: user.phone || "",
+        address: user.address || ""
+      }
     });
-  } else {
-    res.json({ authenticated: false });
+  } catch (error) {
+    console.error("Error fetching user in auth/status:", error);
+    res.status(500).json({ authenticated: false });
   }
 });
+
 
 // Register endpoint
 app.post('/api/auth/register', async (req, res) => {
@@ -967,10 +983,14 @@ app.delete('/api/cart/:product_id', isAuthenticated, async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+// Clear all cart items
+console.log("✅ Registering DELETE /api/cart/clear route");
 
-
-app.delete('/api/cart/clear', isAuthenticated, async (req, res) => {
+// Add a new, simpler endpoint for cart clearing
+app.delete('/api/clear-cart', isAuthenticated, async (req, res) => {
+  console.log("🧹 DELETE /api/clear-cart triggered");
   const user_id = req.session.user.id;
+
   try {
     await pool.query('DELETE FROM cart_items WHERE user_id = ?', [user_id]);
     res.json({ success: true });
@@ -979,6 +999,7 @@ app.delete('/api/cart/clear', isAuthenticated, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 
 // Get all orders
@@ -1051,7 +1072,6 @@ app.post('/api/orders', async (req, res) => {
   const { customer, items, totalAmount, paymentMethod, orderDate, pidx } = req.body;
   console.log("🚀 Order received on backend:", req.body);
 
-
   if (!customer || !items || items.length === 0 || !paymentMethod) {
     return res.status(400).json({ message: 'Missing order details' });
   }
@@ -1066,17 +1086,20 @@ app.post('/api/orders', async (req, res) => {
       .slice(0, 19)
       .replace('T', ' ');
 
-      await pool.query(
-        'INSERT INTO orders (customer, product_name, quantity, payment, status, created_at, payment_method, payment_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [customer, productNames, totalQty, paymentMethod, 'Pending', formattedDate, paymentMethod, pidx]
-      );
-      
-      
-      
+    await pool.query(
+      'INSERT INTO orders (customer, product_name, quantity, payment, status, created_at, payment_method, payment_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [customer, productNames, totalQty, paymentMethod, 'Pending', formattedDate, paymentMethod, pidx]
+    );
+    
+    // ADDED: Clear the cart for this user if they're authenticated
+    if (req.session.user && req.session.user.id) {
+      console.log("🧹 Clearing cart for user:", req.session.user.id);
+      await pool.query('DELETE FROM cart_items WHERE user_id = ?', [req.session.user.id]);
+    }
 
     res.json({ success: true, message: 'Order saved' });
   } catch (err) {
-    console.error(' Error saving order to DB:', err);
+    console.error('Error saving order to DB:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -1085,68 +1108,67 @@ app.post('/api/orders', async (req, res) => {
 
 
 
+// app.put('/api/orders/:id/status', async (req, res) => {
+//   try {
+//     const orderId = req.params.id;
+//     const { status, riderId } = req.body;
 
-app.put('/api/orders/:id/status', async (req, res) => {
-  try {
-    const orderId = req.params.id;
-    const { status, riderId } = req.body;
+//     // ✅ Log the incoming request
+//     console.log("🚚 Incoming update:", { orderId, status, riderId });
 
-    // ✅ Log the incoming request
-    console.log("🚚 Incoming update:", { orderId, status, riderId });
+//     if (!status || !riderId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Status and rider ID are required'
+//       });
+//     }
 
-    if (!status || !riderId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Status and rider ID are required'
-      });
-    }
+//     const [orders] = await pool.query(
+//       'SELECT * FROM orders WHERE id = ? AND assigned_rider = ?',
+//       [orderId, riderId]
+//     );
 
-    const [orders] = await pool.query(
-      'SELECT * FROM orders WHERE id = ? AND assigned_rider = ?',
-      [orderId, riderId]
-    );
+//     if (orders.length === 0) {
+//       return res.status(403).json({
+//         success: false,
+//         message: 'Order not found or not assigned to this rider'
+//       });
+//     }
 
-    if (orders.length === 0) {
-      return res.status(403).json({
-        success: false,
-        message: 'Order not found or not assigned to this rider'
-      });
-    }
+//     await pool.query(
+//       'UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ? AND assigned_rider = ?',
+//       [status, orderId, riderId]
+//     );
 
-    await pool.query(
-      'UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ? AND assigned_rider = ?',
-      [status, orderId, riderId]
-    );
+//     if (status === 'Completed') {
+//       await pool.query(
+//         'UPDATE orders SET delivered_at = NOW() WHERE id = ?',
+//         [orderId]
+//       );
+//     }
 
-    if (status === 'Completed') {
-      await pool.query(
-        'UPDATE orders SET delivered_at = NOW() WHERE id = ?',
-        [orderId]
-      );
-    }
+//     if (status === 'Picked Up') {
+//       await pool.query(
+//         'UPDATE orders SET picked_up_at = NOW() WHERE id = ?',
+//         [orderId]
+//       );
+//     }
 
-    if (status === 'Picked Up') {
-      await pool.query(
-        'UPDATE orders SET picked_up_at = NOW() WHERE id = ?',
-        [orderId]
-      );
-    }
+//     res.json({
+//       success: true,
+//       message: `Order status updated to ${status}`
+//     });
+//   } catch (error) {
+//     // ✅ Log the full error in terminal for debugging
+//     console.error("❌ Error updating order status:", error);
 
-    res.json({
-      success: true,
-      message: `Order status updated to ${status}`
-    });
-  } catch (error) {
-    // ✅ Log the full error in terminal for debugging
-    console.error("❌ Error updating order status:", error);
-
-    // ✅ Return a helpful error message to the frontend
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error'
-    });
-  }
-});
+//     // ✅ Return a helpful error message to the frontend
+//     res.status(500).json({
+//       success: false,
+//       message: error.message || 'Server error'
+//     });
+//   }
+// });
 
 
 
@@ -1539,10 +1561,16 @@ app.get('/api/riders/:id/orders', async (req, res) => {
     const { status } = req.query;
     
     let query = `
-      SELECT orders.*, users.username as customer_name, users.phone as customer_phone
-      FROM orders 
-      LEFT JOIN users ON orders.customer = users.id
-      WHERE orders.assigned_rider = ?
+SELECT 
+  orders.*, 
+  users.username AS customer_name, 
+  users.phone AS customer_phone, 
+  users.address AS customer_address
+FROM orders
+LEFT JOIN users ON orders.customer = users.username
+WHERE orders.assigned_rider = ?
+
+
     `;
     const params = [riderId];
     
@@ -1564,7 +1592,7 @@ app.get('/api/riders/:id/orders', async (req, res) => {
         quantity: order.quantity,
         payment: order.payment,
         status: order.status,
-        address: order.address,
+        address: order.customer_address,
         phone: order.customer_phone,
         customer_name: order.customer_name,
         customer_id: order.customer,

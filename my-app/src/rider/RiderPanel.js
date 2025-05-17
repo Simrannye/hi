@@ -206,13 +206,18 @@ const RiderPanel = ({ riderId }) => {
                   <FaBox />
                   <p>Product: {order.product_name}</p>
                 </div>
+               <div className="detail-item">
+                  <FaMapMarkerAlt />
+                  <p>Client: {order.customer_name || "Not specified"}</p>
+                </div>
                 <div className="detail-item">
                   <FaMapMarkerAlt />
-                  <p>Address: {order.address || "Not specified"}</p>
+                  <p>Address: {order.customer_address || order.address || "Not specified"}</p>
                 </div>
                 <div className="detail-item">
                   <FaPhoneAlt />
-                  <p>Contact: {order.phone || "Not specified"}</p>
+                  <p>Contact: {order.customer_phone || order.phone || "Not specified"}</p>
+
                 </div>
                 <div className="detail-item">
                   <FaMoneyBillWave />

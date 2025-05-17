@@ -84,32 +84,31 @@ const Checkout = () => {
     }
   };
 
-  const handleCOD = async () => {
-    try {
-      const orderDetails = {
-        customer: user.username,
-        items: cart,
-        totalAmount,
-        paymentMethod: 'COD',
-        orderDate: new Date().toISOString()
-      };
+const handleCOD = async () => {
+  try {
+    const orderDetails = {
+      customer: user.username,
+      items: cart,
+      totalAmount,
+      paymentMethod: 'COD',
+      orderDate: new Date().toISOString()
+    };
 
-      const res = await axios.post('http://localhost:5000/api/orders', orderDetails, {
-        withCredentials: true
-      });
+    // Create order
+    await axios.post('http://localhost:5000/api/orders', orderDetails, {
+      withCredentials: true
+    });
 
-      await axios.delete('http://localhost:5000/api/cart/clear', {
-        withCredentials: true
-      });
-
-      clearCart(); // ✅ also clear frontend cart
-      alert("Order placed successfully with Cash on Delivery!");
-      navigate("/");
-    } catch (error) {
-      console.error("Error placing COD order:", error);
-      setError("Failed to place order. Please try again.");
-    }
-  };
+    // Just clear the frontend cart - don't try to clear backend
+    clearCart();
+    
+    alert("Order placed successfully with Cash on Delivery!");
+    navigate("/");
+  } catch (error) {
+    console.error("Error placing COD order:", error);
+    setError("Failed to place order. Please try again.");
+  }
+};
 
   return (
     <>
