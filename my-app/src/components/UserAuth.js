@@ -37,6 +37,7 @@ function UserAuth() {
     const switchToRegister = () => {
         setIsActive(true);
         setLoginError('');
+        setRegisterData({ username: '', email: '', password: '' });
     };
 
     const switchToLogin = () => {
@@ -232,7 +233,7 @@ function UserAuth() {
                             </div>
                             <div className="input-group mb-3 position-relative">
                                 <input type={showRegisterPassword ? "text" : "password"} name="password" placeholder="Password" className="form-control" value={registerData.password} onChange={handleRegisterChange} required style={{ paddingRight: "40px" }} />
-                                <span onClick={() => setShowRegisterPassword(!showRegisterPassword)} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#999" }}>
+                                <span onClick={() => setShowRegisterPassword(!showRegisterPassword)} style={{ position: "absolute",fontSize: "1.2rem", right: "10px", top: "35%", transform: "translateY(-50%)", cursor: "pointer", color: "#999" ,width:"15px"}}>
                                     {showRegisterPassword ? <FaEyeSlash /> : <FaEye />}
                                 </span>
                             </div>
@@ -278,7 +279,7 @@ function UserAuth() {
                         </div>
                         <div className="input-group mb-3 position-relative">
                             <input type={showLoginPassword ? "text" : "password"} name="password" placeholder="Password" className="form-control" value={loginData.password} onChange={handleLoginChange} required style={{ paddingRight: "40px" }} />
-                            <span onClick={() => setShowLoginPassword(!showLoginPassword)} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "#999" }}>
+                            <span onClick={() => setShowLoginPassword(!showLoginPassword)} style={{ position: "absolute",fontSize: "1.2rem", right: "10px", top: "35%", transform: "translateY(-50%)", cursor: "pointer", color: "#999" ,width:"15px"}}>
                                 {showLoginPassword ? <FaEyeSlash /> : <FaEye />}
                             </span>
                         </div>

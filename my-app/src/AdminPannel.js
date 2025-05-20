@@ -142,31 +142,39 @@ const AdminPannel = ({ setUser }) => {
   
         {/* Form */}
         <div className="riders-form">
-          <input
-            name="name"
-            placeholder="Name"
-            value={newRider.name}
-            onChange={handleInputChange}
-          />
-          <input
-            name="address"
-            placeholder="Address"
-            value={newRider.address}
-            onChange={handleInputChange}
-          />
-          <input
-            name="phone"
-            placeholder="Phone"
-            value={newRider.phone}
-            onChange={handleInputChange}
-          />
-          <input
-            name="password"
-            placeholder="Password"
-            type="password"
-            value={newRider.password}
-            onChange={handleInputChange}
-          />
+<input
+  name="name"
+  placeholder="Name"
+  value={editingRider ? newRider.name : ""}
+  onChange={handleInputChange}
+/>
+
+<input
+  name="address"
+  placeholder="Address"
+  value={editingRider ? newRider.address : ""}
+  onChange={handleInputChange}
+/>
+
+<input
+  name="phone"
+  placeholder="Phone"
+  value={editingRider ? newRider.phone : ""}
+  onChange={handleInputChange}
+/>
+
+<input
+  className="rider-input"
+  type="password"
+  name="password"
+  autoComplete="new-password"
+  placeholder="Password"
+  value={newRider.password}
+  onChange={handleInputChange}
+/>
+
+
+
           <button onClick={handleSaveRider}>
             {editingRider ? "Update Rider" : "Add Rider"}
           </button>
@@ -423,6 +431,7 @@ const assignOrderToRider = async (orderId, riderId) => {
     const pendingOrders = orders.filter(order => order.status === "Pending").length;
     const completedOrders = orders.filter(order => order.status === "Completed").length;
     const lowStockProducts = products.filter(product => product.instock < 5).length;
+    const totalmsg = messages.length;
     
     // const totalRevenue = orders
     //   .filter(order => order.status === "Completed")
@@ -431,7 +440,7 @@ const assignOrderToRider = async (orderId, riderId) => {
     //     return sum + (product ? product.price * order.quantity : 0);
     //   }, 0);
     
-    return { totalProducts, totalOrders, pendingOrders, completedOrders, lowStockProducts };
+    return { totalProducts, totalOrders, pendingOrders, completedOrders, lowStockProducts, totalmsg };
   };
 
   // Render dashboard
@@ -441,8 +450,8 @@ const assignOrderToRider = async (orderId, riderId) => {
     return (
       <div className="dashboard-container">
         <h3 className="admin-subheading">Dashboard Overview</h3>
-        <div className="stats-grid">
-  <div className="stat-card">
+      <div className="stats-grid">
+  <div className="stat-card" onClick={() => setActiveTab("products")} style={{ cursor: "pointer" }}>
     <FaBox className="stat-icon" />
     <div className="stat-content">
       <div className="stat-value">{stats.totalProducts}</div>
@@ -450,7 +459,7 @@ const assignOrderToRider = async (orderId, riderId) => {
     </div>
   </div>
 
-  <div className="stat-card">
+  <div className="stat-card" onClick={() => setActiveTab("orders")} style={{ cursor: "pointer" }}>
     <FaClipboardList className="stat-icon" />
     <div className="stat-content">
       <div className="stat-value">{stats.totalOrders}</div>
@@ -458,7 +467,7 @@ const assignOrderToRider = async (orderId, riderId) => {
     </div>
   </div>
 
-  <div className="stat-card">
+  <div className="stat-card" onClick={() => setActiveTab("orders")} style={{ cursor: "pointer" }}>
     <FaClock className="stat-icon" />
     <div className="stat-content">
       <div className="stat-value">{stats.pendingOrders}</div>
@@ -466,7 +475,7 @@ const assignOrderToRider = async (orderId, riderId) => {
     </div>
   </div>
 
-  <div className="stat-card">
+  <div className="stat-card" onClick={() => setActiveTab("orders")} style={{ cursor: "pointer" }}>
     <FaCheckCircle className="stat-icon" />
     <div className="stat-content">
       <div className="stat-value">{stats.completedOrders}</div>
@@ -474,13 +483,22 @@ const assignOrderToRider = async (orderId, riderId) => {
     </div>
   </div>
 
-  <div className="stat-card">
+  <div className="stat-card" onClick={() => setActiveTab("products")} style={{ cursor: "pointer" }}>
     <FaExclamationTriangle className="stat-icon" />
     <div className="stat-content">
       <div className="stat-value">{stats.lowStockProducts}</div>
       <div className="stat-label">Low Stock Items</div>
     </div>
   </div>
+<div className="stat-card" onClick={() => setActiveTab("contact_messages")} style={{ cursor: "pointer" }}>
+  <FaExclamationTriangle className="stat-icon" />
+  <div className="stat-content">
+    <div className="stat-value">{stats.totalmsg}</div>
+    <div className="stat-label">Total Messages</div>
+  </div>
+</div>
+
+
 
   {/* <div className="stat-card">
     <FaMoneyBillWave className="stat-icon" />

@@ -17,6 +17,27 @@
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   }
   
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper .admin-input {
+  padding-right: 40px; /* Space for the icon */
+}
+
+.toggle-password-icon {
+  margin-bottom: 16px;
+  position: absolute;
+  right: 12px;
+  font-size: 1.1rem;
+  color: #555;
+  cursor: pointer;
+}
+
+
+
   .admin-auth-container {
     display: flex;
     justify-content: center;

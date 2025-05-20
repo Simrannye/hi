@@ -220,7 +220,7 @@ html, body, #root {
 /* ========= FORM ========= */
 .admin-product-form {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.8rem;
   margin-bottom: 2.5rem;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -243,6 +243,7 @@ html, body, #root {
 }
 
 .admin-product-form input {
+  
   padding: 1.1rem 1.3rem;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -251,6 +252,22 @@ html, body, #root {
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
+
+.admin-product-form input,
+.admin-product-form select,
+.admin-product-form button,
+.admin-product-form input[type="file"] {
+  height: 50px;
+  width: 100%;
+  padding: 0 1.3rem;
+  font-size: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
 
 .admin-product-form input:focus {
   border-color: #4a6741;
@@ -268,6 +285,11 @@ html, body, #root {
   opacity: 0.5;
   transform: translateX(5px);
 }
+.admin-product-form button {
+  height: 50px;
+  padding: 0 2rem;
+}
+
 
 /* ========= BUTTONS ========= */
 .admin-btn {
@@ -368,7 +390,10 @@ html, body, #root {
 
 /* ========= TABLE ========= */
 .table-container {
-  overflow-x: auto;
+  /* overflow-x: auto; */
+  overflow-y: auto;
+  /* max-width: 100%; */
+  max-height: 400px;
   margin-bottom: 3rem;
   border-radius: 18px;
   background-color: #fff;
@@ -705,7 +730,7 @@ html, body, #root {
 /* ========= RIDERS FORM ========= */
 .riders-form {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(4, 1fr); 
   gap: 1.8rem;
   margin-bottom: 2.5rem;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -737,6 +762,20 @@ html, body, #root {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
+.riders-form input,
+.riders-form button {
+  height: 50px;
+  width: 100%;
+  padding: 0 1.3rem;
+  font-size: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  background-color: #ffffff;
+  box-sizing: border-box;
+  border: 1px solid #e2e8f0;
+}
+
+
 .riders-form input:focus {
   border-color: #4a6741;
   outline: none;
@@ -755,8 +794,9 @@ html, body, #root {
 }
 
 .riders-form button {
-  grid-column: span 2;
-  max-width: 240px;
+  grid-column: auto;
+  max-width: 210px;
+  max-height: 50px;
   background: linear-gradient(135deg, #4a6741 0%, #3b5233 100%);
   color: white;
   padding: 1rem 2rem;
@@ -792,6 +832,13 @@ html, body, #root {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
+.riders-form input[type="password"] {
+  font-size: 1rem; /* Match with other inputs */
+  padding: 1.1rem 1.3rem; /* Same padding */
+  background-color: #fff !important; /* Neutralize autofill styling */
+}
+
+
 
 /* ========= RIDERS TABLE ========= */
 .admin-table .rider-row td {
@@ -837,3 +884,21 @@ html, body, #root {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: #fff;
 }
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #f1f5f9 inset !important;
+  box-shadow: 0 0 0 1000px #f1f5f9 inset !important;
+  -webkit-text-fill-color: #1e293b !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+.riders-form input {
+  padding: 1.1rem 1.3rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 1rem;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+

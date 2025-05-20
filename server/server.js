@@ -1005,7 +1005,7 @@ app.delete('/api/clear-cart', isAuthenticated, async (req, res) => {
 // Get all orders
 app.get("/api/orders", async (req, res) => {
   try {
-    const { customer, page = 1, limit = 10, start, end } = req.query;
+    const { customer, page = 1, limit = 100, start, end } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let baseQuery = `

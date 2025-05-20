@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Adminlogin.css';
 
+
 const AdminLogin = () => {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -33,6 +34,8 @@ const AdminLogin = () => {
       setError(err.message);
     }
   };
+  const [showPassword, setShowPassword] = useState(false);
+
 
   return (
     <div className="admin-auth-container">
@@ -43,7 +46,7 @@ const AdminLogin = () => {
             <div className="admin-brand-logo">ADMIN DASHBOARD</div>
           </div>
           
-          <h1 className="admin-title">Secure Login</h1>
+          <h1 className="admin-title">Login</h1>
           
           {error && (
             <div className="admin-alert admin-alert-danger">
@@ -66,25 +69,28 @@ const AdminLogin = () => {
             required
           />
           
-          <input
-            className="admin-input"
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={loginData.password}
-            onChange={handleChange}
-            required
-          />
+            <div className="password-wrapper">
+  <input
+    className="admin-input"
+    type={showPassword ? 'text' : 'password'}
+    name="password"
+    placeholder="Password"
+    value={loginData.password}
+    onChange={handleChange}
+    required
+  />
+  <i
+    className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} toggle-password-icon`}
+    onClick={() => setShowPassword(prev => !prev)}
+    title={showPassword ? "Hide Password" : "Show Password"}
+  ></i>
+</div>
+
+
           
           <button className="admin-button" type="submit">Sign In</button>
           
-          <div className="admin-secure-notice">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            Secure Connection
-          </div>
+
         </form>
       </div>
     </div>
