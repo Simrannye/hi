@@ -14,6 +14,8 @@ const AdminPannel = ({ setUser }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [editingRider, setEditingRider] = useState(null);
   const [riders, setRiders] = useState([]);
+  const [productError, setProductError] = useState('');
+
 
   const [newRider, setNewRider] = useState({
     name: "",
@@ -277,34 +279,44 @@ const assignOrderToRider = async (orderId, riderId) => {
     
 
   // Add product to database
-  const addProduct = async () => {
-    try {
-      const formData = new FormData();
-      formData.append("name", form.name);
-      formData.append("price", form.price);
-      formData.append("category", form.category);
-      formData.append("description", form.description);
-      formData.append("instock", form.instock);
-      formData.append("location", form.location);
-
-      if (form.imageFile) {
-        formData.append("image", form.imageFile);
-      }
-  
-      const response = await fetch("http://localhost:5000/api/products", {
-        method: "POST",
-        body: formData
-      });
-  
-      if (!response.ok) throw new Error("Failed to add product");
-  
-      const newProduct = await response.json();
-      setProducts([...products, newProduct]);
-      setForm({ id: "", name: "", price: "", category: "", description: "", instock: 0, imageFile: null });
-    } catch (error) {
-      console.error("Error adding product:", error);
+const addProduct = async () => {
+  try {
+    setProductError(''); // clear old error
+    const formData = new FormData();
+    formData.append("name", form.name);
+    formData.append("price", form.price);
+    formData.append("category", form.category);
+    formData.append("description", form.description);
+    formData.append("instock", form.instock);
+    formData.append("location", form.location);
+    if (form.imageFile) {
+      formData.append("image", form.imageFile);
     }
-  };
+
+    const response = await fetch("http://localhost:5000/api/products", {
+      method: "POST",
+      body: formData
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      if (response.status === 409) {
+        setProductError(data.message); // display duplicate error
+      } else {
+        throw new Error("Failed to add product");
+      }
+      return;
+    }
+
+    const newProduct = await response.json();
+    setProducts([...products, newProduct]);
+    setForm({ id: "", name: "", price: "", category: "", description: "", instock: 0, location: "", imageFile: null });
+  } catch (error) {
+    console.error("Error adding product:", error);
+    setProductError("Server error. Please try again.");
+  }
+};
+
   
 
   // Edit product
@@ -432,13 +444,7 @@ const assignOrderToRider = async (orderId, riderId) => {
     const completedOrders = orders.filter(order => order.status === "Completed").length;
     const lowStockProducts = products.filter(product => product.instock < 5).length;
     const totalmsg = messages.length;
-    
-    // const totalRevenue = orders
-    //   .filter(order => order.status === "Completed")
-    //   .reduce((sum, order) => {
-    //     const product = products.find(p => p.name === order.productname);
-    //     return sum + (product ? product.price * order.quantity : 0);
-    //   }, 0);
+
     
     return { totalProducts, totalOrders, pendingOrders, completedOrders, lowStockProducts, totalmsg };
   };
@@ -499,14 +505,6 @@ const assignOrderToRider = async (orderId, riderId) => {
 </div>
 
 
-
-  {/* <div className="stat-card">
-    <FaMoneyBillWave className="stat-icon" />
-    <div className="stat-content">
-      <div className="stat-value">NPR {stats.totalRevenue.toLocaleString()}</div>
-      <div className="stat-label">Total Revenue</div>
-    </div>
-  </div> */}
 </div>
 
         
@@ -532,6 +530,11 @@ const assignOrderToRider = async (orderId, riderId) => {
         
         {/* Product Form */}
         <div className="admin-product-form">
+            {productError && (
+           <div className="error-message" style={{ color: "red", marginBottom: "10px" }}>
+                {productError}
+               </div>
+             )}
           <input 
             type="text" 
             name="name" 

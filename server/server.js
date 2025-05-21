@@ -807,12 +807,17 @@ app.post("/api/products", upload.single('image'), async (req, res) => {
     const { name, price, category, description, instock, location } = req.body;
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
-    // Validate inputs
-    if (!name || !price || !category || !description || instock === null || !location) {
-      return res.status(400).json({ message: "All fields are required including location" });
+    // ✅ Check for duplicate
+    const [existing] = await pool.query(
+      "SELECT * FROM products WHERE name = ? AND location = ?",
+      [name, location]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({ message: "Product with this name already exists at the selected location." });
     }
 
-    // Insert product with location
+    // Proceed with insert
     const [result] = await pool.query(
       "INSERT INTO products (name, price, category, description, instock, image, location) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [name, price, category, description, instock, imagePath, location]
@@ -833,6 +838,7 @@ app.post("/api/products", upload.single('image'), async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 
 // Get All Products

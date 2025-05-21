@@ -38,30 +38,33 @@ const Products = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
+
+          
+
           const hubs = [
             { name: "Thamel", lat: 27.7149, lon: 85.3123 },
             { name: "Budhanilkantha", lat: 27.793, lon: 85.3635 },
             { name: "Naxal", lat: 27.7172, lon: 85.3266 },
           ];
 
+
           const getDistance = (lat1, lon1, lat2, lon2) => {
-            const toRad = (val) => val * Math.PI / 180;
-            const R = 6371;
-            const dLat = toRad(lat2 - lat1);
-            const dLon = toRad(lon2 - lon1);
-            const a =
-              Math.sin(dLat / 2) ** 2 +
-              Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-              Math.sin(dLon / 2) ** 2;
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c;
-          };
+              const dLat = lat2 - lat1;
+              const dLon = lon2 - lon1;
+             return dLat * dLat + dLon * dLon; // no sqrt needed
+             
+};
+
 
           const nearest = hubs.reduce((prev, curr) => {
             const prevDist = getDistance(latitude, longitude, prev.lat, prev.lon);
             const currDist = getDistance(latitude, longitude, curr.lat, curr.lon);
             return currDist < prevDist ? curr : prev;
           });
+
+
+              console.log(`📍 You are approximately at [${latitude.toFixed(4)}, ${longitude.toFixed(4)}]`);
+    console.log(`🚚 Your nearest delivery hub is: ${nearest.name}`);
 
           if (!manualOverride) setUserLocation(nearest.name);
         },

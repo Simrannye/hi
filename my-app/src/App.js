@@ -84,7 +84,7 @@ function App() {
           setRiderId(null);
         }
       } catch (err) {
-        console.error("Failed to check rider session:", err);
+        // console.error("Failed to check rider session:", err);
         setRiderId(null);
       }
     };

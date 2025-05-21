@@ -55,9 +55,14 @@ const RiderPanel = ({ riderId }) => {
     return () => clearInterval(intervalId);
   }, [riderId]);
 
+  useEffect(() => {
+  console.log("👤 Rider ID in Panel:", riderId);
+}, [riderId]);
+
+
   // Handle updating order status
   const updateOrderStatus = async (orderId, status) => {
-    const riderId = localStorage.getItem("riderId");
+    // const riderId = localStorage.getItem("riderId");
 
     try {
       const response = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
@@ -65,7 +70,7 @@ const RiderPanel = ({ riderId }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // 🔥 Important for sending cookies (session-based auth)
+        credentials: "include", // Important for sending cookies (session-based auth)
         body: JSON.stringify({
           status,
           riderId
@@ -78,7 +83,7 @@ const RiderPanel = ({ riderId }) => {
         throw new Error(data.message || "Failed to update order status");
       }
   
-      // ✅ Update local UI state
+      // Update local UI state
       setOrders(prev =>
         prev.map(order =>
           order.id === orderId ? { ...order, status } : order
